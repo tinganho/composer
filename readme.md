@@ -4,7 +4,7 @@ react-composer
 `react-composer` is a client/server router for your react applications. A developer defines a set of declaration for a page. Like what models and views a page should have. `react-composer` then automatically render/compose pages both on the client and server on each route.
 
 First we define some default configs:
-```
+```typescript
 export default var {
     googleAnatlyticsId: 'u-1872637846324',
     styles: [
@@ -16,7 +16,7 @@ export default var {
 ```
 Then, we define a page:
 
-```
+```typescript
 import defaultConfigs from './defaultConfigs';
 import Document from './Document';
 import Body_withTopBar_withFooter from './Body_withTopBar_withFooter';
@@ -36,7 +36,7 @@ export default function(HomePage) {
 }
 ```
 
-```
+```typescript
 import {express} from 'express';
 import * as composer from 'composer';
 
@@ -53,7 +53,7 @@ app.use(composer.pages({
 ``` 
 
 ### Initial setup
-```
+```typescript
 import composer from 'composer';
 var app = express();
 ...
