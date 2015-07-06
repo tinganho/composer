@@ -1,15 +1,17 @@
 
-/// <reference path='typings/node/node.d.ts'/>
-/// <reference path='typings/express/express.d.ts'/>
-/// <reference path='typings/react/react.d.ts'/>
-/// <reference path='typings/glob/glob.d.ts'/>
+/// <reference path='../../typings/node/node.d.ts'/>
+/// <reference path='../../typings/express/express.d.ts'/>
+/// <reference path='../../typings/react/react.d.ts'/>
+/// <reference path='../../typings/glob/glob.d.ts'/>
 
 import {readFileSync as readFile} from 'fs';
+import * as React from 'react';
 import {Application, Request, Response} from 'express';
-import {} from 'path';
+import * as path from 'path';
 import * as glob from 'glob';
 
-let app: Application;
+export {Request, Response};
+
 let imports: string[] = [];
 let importNames: string[] = [];
 let importPaths: string[] = [];
@@ -19,12 +21,20 @@ export interface Pages {
     [page: string]: (page: Page) => void;
 }
 
-export interface Layout<P, S> extends React.Component<P, S> {
-    name: string;
+export class Layout<P, S, C> extends React.Component<P, S> {
+    public static name: string;
+
+    constructor(public contents: C) {
+        super();    
+    }
 }
 
-export interface Doc<P, S> extends React.Component<P, S> {
-    docProps?: DocProps;
+export class Document<P, S, C extends DocumentProps> extends React.Component<P, S> {
+    public static name: string;
+
+    constructor(public docProps: C) {
+        super();
+    }
 }
 
 export interface Contents {
@@ -77,15 +87,15 @@ interface ComposerOptions {
     app: Application;
 }
 
-let options: ComposerOptions;
+let composerOptions: ComposerOptions;
 
-export function init(options: ComposerOptions) {
-    options = options;
+export function init(options?: ComposerOptions): void {
+    composerOptions = options;
 }
 
-export function pages<T, U>(pages: Pages): (req: T, res: U, next?: any) => void {
-    return function(req: T, res: U) {
-        
+export function setPages<T, U>(routes: Pages): void {
+    for (let url in routes) {
+        routes[url](new Page(url));
     }
 }
 
@@ -99,15 +109,18 @@ export function generateComposer(): void {
 interface Platform {
     imports: string[];
     importNames: string[];
-    doc?: Doc<any, any>;
-    layout?: Layout<any, any>;
+    document?: new (docProps: DocumentProps) => Document<any, any, any>;
+    documentProps?: DocumentProps;
+    layout?: new (contents: Contents) => Layout<any, any, any>;
     contents?: Contents;
     detect(req: Request): boolean;
 }
 
-interface DocProps {
-    title: string;
+export interface DocumentProps {
     confs: string[];
+    title?: string;
+    styles?: string[];
+    [prop: string]: string | string[];
 }
 
 /**
@@ -116,7 +129,7 @@ interface DocProps {
  * customize the html you waant
  */
 export class Page {
-    
+
     /**
      * A flag for checking if this page have attached a URL handler.
      */
@@ -124,9 +137,9 @@ export class Page {
     private platforms: { [index: string]: Platform } = {};
     private currentPlatform: Platform;
     private currentPlatformName: string;
-    
+
     constructor(private url: string) {}
-    
+
     /**
      * Specify a platform with a PlatformDetect.
      */
@@ -136,65 +149,56 @@ export class Page {
             importNames: [],
             detect: platform.detect
         }
-        
+
         this.currentPlatform = this.platforms[platform.name];
-        
+
         return this;
     }
     
     /**
-     * Define which document this page should have.
+     * Define which document this page should have along with document properties.
      */
-    public hasDoc<P, S>(doc: Doc<P, S>): Page {
+    public hasDocument<P, S, C extends DocumentProps>(document: new (contents: C) => Document<P, S, C> , ...documentPropArgs: DocumentProps[]): Page {
         if (typeof this.currentPlatform === 'undefined') {
             throw new TypeError('You must define a platform with `.onPlatform()` method.');
         }
-        
-        this.currentPlatform.doc = doc;
-        
+
+        this.currentPlatform.document = document;
+
+        let resultProps: DocumentProps = { confs: [] };
+        for (let i in documentPropArgs) {
+            documentPropArgs[i].confs = documentPropArgs[i].confs.map(conf => {
+                let path = '';
+
+                if(composerOptions.resourceNamespace) {
+                    path += `/${composerOptions.resourceNamespace}/`;
+                }
+
+                if(composerOptions.inProduction) {
+                    return path + glob.sync(`${composerOptions.clientConfPath}/*.${composerOptions.devToProdClientConfPath[conf]}.js`, { cwd: composerOptions.rootPath })[0];
+                }
+
+                return  `${path}/${composerOptions.clientConfPath}/${conf}.js`;
+            });
+
+            for (let prop in documentPropArgs[i]) {
+                resultProps[prop] = documentPropArgs[i][prop];
+            }
+        }
+
+        this.currentPlatform.documentProps = resultProps;
+
         return this;
     }
-    
+
     /**
      * Define which layout this page should have.
      */
-    public hasLayout<P, S>(layout: Layout<P, S>): Page {
+    public hasLayout<P, S, C extends Contents>(layout: new (contents: C) => Layout<P, S, C>, contents: C): Page {
         this.currentPlatform.layout = layout;
-        
-        return this;
-    }
-    
-    /**
-     * Define the document properties this page should have.
-     */
-    public withProps(props: DocProps): Page {
-        props.confs = props.confs.map(conf => {
-            let path = '';
-
-            if(options.resourceNamespace) {
-                path += `/${options.resourceNamespace}/`;
-            }
-
-            if(options.inProduction) {
-                return path + glob.sync(`${options.clientConfPath}/*.${options.devToProdClientConfPath[conf]}.js`, { cwd: rootPath })[0];
-            }
-
-            return  `${path}/${options.clientConfPath}/${options.devToProdClientConfPath[conf]}.js`;
-        });
-        
-        if (!props.title) {
-            props.title = '';
-        }
-        
-        this.currentPlatform.doc.props = props;
-        
-        return this;
-    }
-    
-    public withContents(contents: Contents): Page {
         this.currentPlatform.contents = contents;
         this.serve();
-        
+
         return this;
     }
     
@@ -202,12 +206,13 @@ export class Page {
         this.addContents();
         this.addPages();
         if(!this.attachedUrlHandler) {
-            app.get(this.url, this.next);
+            composerOptions.app.get(this.url, this.next.bind(this));
             this.attachedUrlHandler = true;
         }
     }
     
     private addContents(): void {
+        
     }
     
     private addPages(): void {
@@ -216,6 +221,14 @@ export class Page {
     
     private next(req: Request, res: Response, next: () => void): void {
         
+        this.getRegions(req, res, (regions, jsonScripts) => {
+            let html = React.renderToString(React.createElement(this.currentPlatform.document));
+            res.send(html);
+        });
+    }
+    
+    private getRegions(req: Request, res: Response, callback: (regions?: any, jsonScripts?: any) => void): void {
+        callback();
     }
     
     private getContents(): void {

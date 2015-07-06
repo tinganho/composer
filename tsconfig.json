@@ -2,9 +2,12 @@
     "compilerOptions": {
         "module": "commonjs",
         "noImplicitAny": true,
-        "outDir": "built"
+        "outDir": "built",
+        "sourceMap": true,
+        "jsx": "react"
     },
     "exclude": [
+        "test",
         "node_modules"
     ]
 }

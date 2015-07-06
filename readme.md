@@ -63,3 +63,15 @@ composer.init({
     rootPath: __dirname
 });
 ```
+
+## Define a platform detect
+```
+import {PlatformDetect, Request} from 'react-composer';
+var detect implements PlatformDetect {
+    detect: function(req: Request) {
+        
+    },
+}
+export default detect; 
+}
+```

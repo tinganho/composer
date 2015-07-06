@@ -1,0 +1,2 @@
+
+./node_modules/mocha/bin/mocha ./built/src/harness/runner.js --reporter spec --timeout 30000

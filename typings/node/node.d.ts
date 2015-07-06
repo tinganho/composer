@@ -271,7 +271,6 @@ declare module NodeJS {
         Int8Array: typeof Int8Array;
         Intl: typeof Intl;
         JSON: typeof JSON;
-        Map: typeof Map;
         Math: typeof Math;
         NaN: typeof NaN;
         Number: typeof Number;
@@ -280,7 +279,6 @@ declare module NodeJS {
         RangeError: typeof RangeError;
         ReferenceError: typeof ReferenceError;
         RegExp: typeof RegExp;
-        Set: typeof Set;
         String: typeof String;
         Symbol: Function;
         SyntaxError: typeof SyntaxError;
@@ -290,7 +288,6 @@ declare module NodeJS {
         Uint32Array: typeof Uint32Array;
         Uint8Array: typeof Uint8Array;
         Uint8ClampedArray: Function;
-        WeakMap: typeof WeakMap;
         WeakSet: Function;
         clearImmediate: (immediateId: any) => void;
         clearInterval: (intervalId: NodeJS.Timer) => void;

@@ -83,7 +83,11 @@ declare module React {
         type: ComponentClass<P>,
         props?: P,
         ...children: ReactNode[]): ReactElement<P>;
-
+    function createElement<P, S>(
+        type: Component<P, S>,
+        props?: P,
+        ...children: ReactNode[]): ReactElement<P>;
+        
     function cloneElement<P>(
         element: DOMElement<P>,
         props?: P,

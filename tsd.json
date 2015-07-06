@@ -22,6 +22,27 @@
     },
     "chai/chai.d.ts": {
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "minimatch/minimatch.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "serve-static/serve-static.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "mime/mime.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "sinon/sinon.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "nightmare/nightmare.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "react/react-jsx.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "morgan/morgan.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
     }
   }
 }
