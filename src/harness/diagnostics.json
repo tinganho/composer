@@ -1,8 +1,16 @@
 {
-    "Compiler option {0} expects an argument.": {
+    "Compiler option '{0}' expects an argument.": {
         "code": 1000
     },
-    "Unknown_compiler_option_0": {
+    "Unknown command line options '{0}'.": {
         "code": 1001
+    },
+
+    "Could not start headless web browser.": {
+        "code": 2001
+    },
+
+    "Interactive starts the server until you manually stops it.": {
+        "code": 9000
     }
 }

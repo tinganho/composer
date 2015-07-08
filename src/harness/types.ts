@@ -152,7 +152,8 @@ export interface CommandLineOption {
     experimental?: boolean;
 }
 
-export interface CompilerOptions {
+export interface CommandLineOptions {
+    interactive?: boolean;
     help?: boolean;
 
     [option: string]: string | number | boolean;

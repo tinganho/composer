@@ -2,20 +2,25 @@
 /// <reference path='../../typings/glob/glob.d.ts'/>
 
 import glob = require('glob');
-import {CharacterCodes, CompilerOptions, CommandLineOption} from './types';
+import {CharacterCodes, CommandLineOptions, CommandLineOption} from './types';
 import {Diagnostics, DiagnosticMessage} from './diagnostics.generated';
-import {createCompilerDiagnostic, Debug, hasProperty, Map} from './core';
+import {createDiagnostic, Debug, includes, hasProperty, Map} from './core';
 
 export interface ParsedCommandLine {
-    options: CompilerOptions;
-    fileNames: string[];
+    options: CommandLineOptions;
+    errors: DiagnosticMessage[];
 }
 
-var optionDeclarations: CommandLineOption[] = [
+let optionDeclarations: CommandLineOption[] = [
     {
         name: 'help',
         shortName: 'h',
         type: 'string',
+    },
+    {
+        name: 'interactive',
+        shortName: 'i',
+        type: 'boolean',
     },
     {
         name: 'tests',
@@ -24,8 +29,10 @@ var optionDeclarations: CommandLineOption[] = [
     },
 ];
 
-export function parseCommandLineOptions(commandLine: string[]) {
-    let options: CompilerOptions = {};
+let mochaDefaultOptions: string[] = ['timeout', 'reporter'];
+
+export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLine {
+    let options: CommandLineOptions = {};
     let testFiles: string[];
     let errors: DiagnosticMessage[] = [];
     let shortOptionNames: Map<string> = {};
@@ -48,7 +55,7 @@ export function parseCommandLineOptions(commandLine: string[]) {
     function parseStrings(args: string[]) {
         let i = 0;
         while (i < args.length) {
-            var s = args[i++];
+            let s = args[i++];
             if (s.charCodeAt(0) === CharacterCodes.minus) {
                 s = s.slice(s.charCodeAt(1) === CharacterCodes.minus ? 2 : 1).toLowerCase();
 
@@ -58,11 +65,11 @@ export function parseCommandLineOptions(commandLine: string[]) {
                 }
 
                 if (hasProperty(optionNameMap, s)) {
-                    var opt = optionNameMap[s];
+                    let opt = optionNameMap[s];
 
                     // Check to see if no argument was provided (e.g. '--help' is the last command-line argument).
                     if (!args[i] && opt.type !== 'boolean') {
-                        errors.push(createCompilerDiagnostic(Diagnostics.Compiler_option_0_expects_an_argument, opt.name));
+                        errors.push(createDiagnostic(Diagnostics.Compiler_option_0_expects_an_argument, opt.name));
                     }
 
                     switch (opt.type) {
@@ -80,7 +87,9 @@ export function parseCommandLineOptions(commandLine: string[]) {
                     }
                 }
                 else {
-                    errors.push(createCompilerDiagnostic(Diagnostics.Unknown_compiler_option_0, s));
+                    if (!includes(mochaDefaultOptions, s)) {
+                        errors.push(createDiagnostic(Diagnostics.Unknown_command_line_options_0, s));
+                    }
                 }
             }
         }

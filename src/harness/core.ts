@@ -1,6 +1,8 @@
 
 import {DiagnosticMessage} from './diagnostics.generated';
 
+import 'terminal-colors';
+
 export interface Map<T> {
     [index: string]: T;
 }
@@ -10,14 +12,18 @@ export function hasProperty<T>(map: Map<T>, key: string): boolean {
     return hasOwnProperty.call(map, key);
 }
 
+export function includes<T>(arr: T[], search: T): boolean {
+    return arr.indexOf(search) !== -1;
+}
+
 function formatStringFromArgs(text: string, args: { [index: number]: any; }, baseIndex?: number): string {
     baseIndex = baseIndex || 0;
 
     return text.replace(/{(\d+)}/g, (match, index?) => args[+index + baseIndex]);
 }
 
-export function createCompilerDiagnostic(diagnostic: DiagnosticMessage, ...args: any[]): DiagnosticMessage;
-export function createCompilerDiagnostic(diagnostic: DiagnosticMessage): DiagnosticMessage {
+export function createDiagnostic(diagnostic: DiagnosticMessage, ...args: any[]): DiagnosticMessage;
+export function createDiagnostic(diagnostic: DiagnosticMessage): DiagnosticMessage {
     let text = diagnostic.message;
 
     if (arguments.length > 1) {
@@ -57,5 +63,15 @@ export module Debug {
 
     export function fail(message?: string): void {
         Debug.assert(false, message);
+    }
+}
+
+export function printDiagnostic(diagnostic: DiagnosticMessage): void {
+    console.log(`[ ${(<any>(diagnostic.code + '')).red} ] - ${diagnostic.message}`);
+}
+
+export function printDiagnostics(diagnostics: DiagnosticMessage[]): void {
+    for (let d of diagnostics) {
+        printDiagnostic(d);
     }
 }

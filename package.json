@@ -13,7 +13,7 @@
     "express": "^4.13.0",
     "generate-ts-diagnostics": "^0.1.1",
     "gulp": "^3.9.0",
-    "gulp-generate-ts-diagnostics": "^0.1.13",
+    "gulp-generate-ts-diagnostics": "^0.1.14",
     "gulp-rename": "^1.2.2",
     "mocha": "^2.2.5",
     "morgan": "^1.6.1",
@@ -29,6 +29,7 @@
     "url": "https://github.com/tinganho/react-composer.git"
   },
   "dependencies": {
-    "glob": "^5.0.13"
+    "glob": "^5.0.13",
+    "terminal-colors": "^0.1.3"
   }
 }

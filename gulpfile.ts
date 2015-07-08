@@ -25,4 +25,6 @@ gulp.task('generate-diagnostics', () => {
         .pipe(gulp.dest('src/harness/'));
 });
 
+gulp.task('d', ['generate-diagnostics']);
+
 gulp.task('default', ['generate-diagnostics']);

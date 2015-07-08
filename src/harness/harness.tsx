@@ -8,6 +8,7 @@
 /// <reference path='../../typings/chai/chai.d.ts'/>
 /// <reference path='../../typings/morgan/morgan.d.ts'/>
 
+import {CommandLineOptions, Map} from './types';
 import logger = require('morgan');
 import cf from '../../conf/conf';
 import * as composer from '../composer/composer';
@@ -20,6 +21,9 @@ import * as http from 'http';
 import {readFile, writeFileSync} from 'fs';
 import {expect} from 'chai';
 import Nightmare = require('nightmare');
+import {parseCommandLineOptions} from './commandLineParser';
+import {printDiagnostics, printDiagnostic} from './core';
+import {Diagnostics} from './diagnostics.generated';
 
 declare function require(path: string): any;
 require('source-map-support').install();
@@ -60,6 +64,17 @@ let defaultConfigs: composer.DocumentProps = {
 let app: express.Express;
 
 export default class Harness {
+    options: CommandLineOptions;
+
+    constructor(args: string[]) {
+        let {options, errors} = parseCommandLineOptions(args);
+        if (errors.length > 0) {
+            printDiagnostics(errors);
+            process.exit();
+        }
+        this.options = options;
+    }
+
     runTests() {
         let builtFolder = path.join(__dirname, '../../');
         let root = path.join(builtFolder, '../');
@@ -94,7 +109,7 @@ export default class Harness {
                     });
 
                     let server = http.createServer(app);
-                    server.listen(cf.PORT, function(err: any) {
+                    server.listen(cf.PORT, (err: any) => {
                         let filePath = path.join(root, `test/baselines/local/${fileName.replace(/\.js$/, '')}`);
                         new Nightmare()
                             .viewport(900, 1200)
@@ -102,13 +117,24 @@ export default class Harness {
                             .wait()
                             .screenshot(`${filePath}.jpg`)
                             .run((err, nightmare) => {
-                                if(err) console.log(err);
+                                if(err) {
+                                    printDiagnostic(Diagnostics.Could_not_start_headless_web_browser);
+                                }
 
-                                server.close((err: any) => {
-                                    done();
-                                });
+                                if (this.options.interactive) {
+                                    app.get('/__next', closeServer);
+                                }
+                                else {
+                                    closeServer();
+                                }
                             });
                     });
+
+                    function closeServer() {
+                        server.close((err: any) => {
+                            done();
+                        });
+                    }
                 });
             });
         }
