@@ -11,13 +11,18 @@
   "devDependencies": {
     "chai": "^3.0.0",
     "express": "^4.13.0",
+    "generate-ts-diagnostics": "^0.1.1",
+    "gulp": "^3.9.0",
+    "gulp-generate-ts-diagnostics": "^0.1.0",
+    "gulp-rename": "^1.2.2",
     "mocha": "^2.2.5",
     "morgan": "^1.6.1",
     "nightmare": "^1.8.2",
     "radium": "^0.13.2",
     "react": "^0.13.3",
     "sinon": "^1.15.4",
-    "source-map-support": "^0.3.2"
+    "source-map-support": "^0.3.2",
+    "typescript-register": "^1.1.0"
   },
   "repository": {
     "type": "git",

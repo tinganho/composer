@@ -12,3 +12,5 @@
 /// <reference path="nightmare/nightmare.d.ts" />
 /// <reference path="react/react-jsx.d.ts" />
 /// <reference path="morgan/morgan.d.ts" />
+/// <reference path="gulp/gulp.d.ts" />
+/// <reference path="gulp-rename/gulp-rename.d.ts" />
