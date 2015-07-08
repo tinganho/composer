@@ -13,7 +13,7 @@
     "express": "^4.13.0",
     "generate-ts-diagnostics": "^0.1.1",
     "gulp": "^3.9.0",
-    "gulp-generate-ts-diagnostics": "^0.1.0",
+    "gulp-generate-ts-diagnostics": "^0.1.13",
     "gulp-rename": "^1.2.2",
     "mocha": "^2.2.5",
     "morgan": "^1.6.1",

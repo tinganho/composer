@@ -12,23 +12,13 @@ import fs = require('fs');
 
 var diagnosticMessageProps: generateTsDiagnostics.DiagnosticMessageProperties = [
     {
-        name: 'message',
-        type: 'string',
-        optional: false,
-    },
-    {
-        name: 'code',
-        type: 'number',
-        optional: false,
-    },
-    {
         name: 'code',
         type: 'number',
         optional: false,
     },
 ];
 
-gulp.task('diag', () => {
+gulp.task('generate-diagnostics', () => {
     gulp.src('src/harness/diagnostics.json')
         .pipe(rename('diagnostics.generated.ts'))
         .pipe(generateTsDiagnostics(diagnosticMessageProps))
