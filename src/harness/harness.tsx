@@ -17,32 +17,30 @@ import express = require('express');
 import * as sinon from 'sinon';
 import * as React from 'react';
 import * as http from 'http';
-import {readFile} from 'fs';
+import {readFile, writeFileSync} from 'fs';
 import {expect} from 'chai';
 import Nightmare = require('nightmare');
 
 declare function require(path: string): any;
 require('source-map-support').install();
 
-interface Props {}
+interface Props {
+    layout: string;
+}
 
 interface States {}
 
 
-class Document<P, S, C extends composer.DocumentProps> extends React.Component<P, S> implements composer.Document<P, S, C> {
-    public name = 'Default';
-    
-    constructor(public docProps: C) {
-        super();
-    }
-    
+class Document extends composer.ComposerDocument<Props, States> {
+    name = 'Default';
+
     render() {
         return (
             <html lang="en">
                 <head>
                     <link rel="stylesheet" href="/public/styles/styles.css"/>
                 </head>
-                <body>
+                <body dangerouslySetInnerHTML={{__html: this.props.layout}}>
                 </body>
             </html>
         );
@@ -55,14 +53,6 @@ interface LayoutRegions {
     Footer: string;
 }
 
-class Layout<P, S, C extends composer.Contents> extends React.Component<P, S> implements composer.Layout<P, S, C>  {
-    public name = 'Body withTopBar withFooter';
-    
-    constructor(public contents: C) {
-        super();
-    }
-}
-
 let defaultConfigs: composer.DocumentProps = {
     confs: ['default']
 }
@@ -71,7 +61,9 @@ let app: express.Express;
 
 export default class Harness {
     runTests() {
-        let files = glob('test/cases/*.ts', { cwd: path.join(__dirname, '../../../') });
+        let builtFolder = path.join(__dirname, '../../');
+        let root = path.join(builtFolder, '../');
+        let files = glob('test/cases/*.js', { cwd: builtFolder });
         for (var file of files) {
             var fileName = path.basename(file);
 
@@ -94,21 +86,24 @@ export default class Harness {
                 it('should be able to set pages', (done) => {
                     composer.setPages({
                         '/': function(page) {
-                            page.onPlatform({ name: 'all', detect: () => true })
+                            let testModule = require(path.join(builtFolder, file.replace(/\.tsx$/, '.js')));
+                            page.onPlatform({ name: 'all', detect: (req: express.Request) => true })
                                 .hasDocument(Document, defaultConfigs)
-                                .hasLayout(Layout, {
-                                });
+                                .hasLayout(testModule.TestLayout, testModule.contents);
                         }
                     });
 
                     let server = http.createServer(app);
                     server.listen(cf.PORT, function(err: any) {
+                        let filePath = path.join(root, `test/baselines/local/${fileName.replace(/\.js$/, '')}`);
                         new Nightmare()
                             .viewport(900, 1200)
                             .goto(`http://${cf.HOST}:${cf.PORT}/`)
                             .wait()
-                            .screenshot(`test/baselines/local/${fileName}.jpg`)
+                            .screenshot(`${filePath}.jpg`)
                             .run((err, nightmare) => {
+                                if(err) console.log(err);
+
                                 server.close((err: any) => {
                                     done();
                                 });

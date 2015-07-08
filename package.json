@@ -14,6 +14,7 @@
     "mocha": "^2.2.5",
     "morgan": "^1.6.1",
     "nightmare": "^1.8.2",
+    "radium": "^0.13.2",
     "react": "^0.13.3",
     "sinon": "^1.15.4",
     "source-map-support": "^0.3.2"

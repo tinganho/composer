@@ -1,13 +1,15 @@
 {
     "compilerOptions": {
         "module": "commonjs",
+        "target": "es5",
         "noImplicitAny": true,
         "outDir": "built",
+        "rootDir": ".",
+        "experimentalDecorators": true,
         "sourceMap": true,
         "jsx": "react"
     },
     "exclude": [
-        "test",
         "node_modules"
     ]
 }
