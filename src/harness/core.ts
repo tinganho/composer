@@ -1,5 +1,6 @@
 
-import {DiagnosticMessage} from './diagnostics.generated';
+import { DiagnosticMessage } from './diagnostics.generated';
+import { Map } from '../types';
 
 import 'terminal-colors';
 

@@ -3,8 +3,9 @@
 
 import glob = require('glob');
 import {CharacterCodes, CommandLineOptions, CommandLineOption} from './types';
+import {Map} from '../types';
 import {Diagnostics, DiagnosticMessage} from './diagnostics.generated';
-import {createDiagnostic, Debug, includes, hasProperty, Map} from './core';
+import {createDiagnostic, Debug, includes, hasProperty} from './core';
 
 export interface ParsedCommandLine {
     options: CommandLineOptions;

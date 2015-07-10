@@ -6,17 +6,16 @@
 /// <reference path='../../typings/glob/glob.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
-import {readFileSync as readFile} from 'fs';
 import * as React from 'react';
-import {Application, Request, Response} from 'express';
-import * as path from 'path';
+import { Application, Request, Response } from 'express';
+import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo } from './webClientComposerEmitter';
 
-export {Request, Response};
+export { Request, Response };
 
 let imports: string[] = [];
 let importNames: string[] = [];
 let importPaths: string[] = [];
-let urlPaths: string [] = [];
+let routes: string [] = [];
 
 export interface Pages {
     [page: string]: (page: Page) => void;
@@ -39,7 +38,6 @@ export class ComposerDocument<Props extends DocumentProps, States> extends React
 export class ComposerLayout<Props, States> extends ReactComposerComponent<Props, States> {}
 
 export class ComposerContent<Props, States> extends ReactComposerComponent<Props, States> {
-    static name: string;
     static fetch(): Promise<any> {
         return new Promise((resolve, reject) => {
            resolve();
@@ -50,7 +48,6 @@ export class ComposerContent<Props, States> extends ReactComposerComponent<Props
 export interface Contents {
     [index: string]: JSX.Element;
 }
-
 
 interface JsonScriptAttributes {
     id: string;
@@ -126,13 +123,34 @@ export function generateComposer(): void {
 
 }
 
+interface Info {
+    importPath: string;
+    component: typeof React.Component;
+}
+
+interface DocumentInfo extends Info {
+    component: typeof ComposerDocument;
+}
+
+interface LayoutInfo extends Info {
+    component: typeof ComposerLayout;
+}
+
+interface ContentInfo extends Info {
+    component: typeof ComposerContent;
+}
+
+export interface ContentInfos {
+    [index: string]: ContentInfo;
+}
+
 interface Platform {
     imports: string[];
     importNames: string[];
-    document?: typeof ComposerDocument;
+    document?: DocumentInfo;
     documentProps?: DocumentProps;
-    layout?: typeof ComposerLayout;
-    contents?: any;
+    layout?: LayoutInfo;
+    contents?: ContentInfos;
     detect(req: Request): boolean;
 }
 
@@ -144,6 +162,11 @@ interface Platform {
 export class Page {
 
     /**
+     * Route of this page.
+     */
+    public route: string;
+
+    /**
      * A flag for checking if this page have attached a URL handler.
      */
     private attachedUrlHandler: boolean = false;
@@ -151,7 +174,11 @@ export class Page {
     private currentPlatform: Platform;
     private currentPlatformName: string;
 
-    constructor(private url: string) {}
+
+    constructor(route: string) {
+        this.route = route;
+        routes.push(route);
+    }
 
     /**
      * Specify a platform with a PlatformDetect.
@@ -171,7 +198,7 @@ export class Page {
     /**
      * Define which document this page should have along with document properties.
      */
-    public hasDocument<T extends DocumentProps>(document: typeof ComposerDocument, documentProps: T): Page {
+    public hasDocument<T extends DocumentProps>(document: DocumentInfo, documentProps: T): Page {
         if (typeof this.currentPlatform === 'undefined') {
             throw new TypeError('You must define a platform with `.onPlatform()` method.');
         }
@@ -185,36 +212,55 @@ export class Page {
     /**
      * Define which layout this page should have.
      */
-    public hasLayout<C extends Contents>(layout: typeof ComposerLayout, contents: C): Page {
+    public hasLayout<C extends ContentInfos>(layout: LayoutInfo, contents: C): Page {
         this.currentPlatform.layout = layout;
         this.currentPlatform.contents = contents;
-        this.serve();
 
         return this;
     }
 
-    private serve(): void {
-        this.addContents();
-        this.addPages();
+    public serve(): void {
+        this.registerPage();
+
         if(!this.attachedUrlHandler) {
-            composerOptions.app.get(this.url, this.handlePageRequest.bind(this));
+            composerOptions.app.get(this.route, this.handlePageRequest.bind(this));
             this.attachedUrlHandler = true;
         }
     }
 
-    private addContents(): void {
+    private registerPage(): void {
+        let emitPageInfo: PageEmitInfo;
+        let contentEmitInfos: ContentEmitInfo[] = [];
+        let layout = this.currentPlatform.layout;
+        let contents = this.currentPlatform.contents;
 
-    }
+        for (let region in contents) {
+            let content = contents[region];
 
-    private addPages(): void {
+            contentEmitInfos.push({
 
+                 // Get the class name from the constructor.
+                className: content.component.name,
+                importPath: content.importPath,
+                route: this.route,
+                region: region,
+            });
+        }
+
+        emitPageInfo.route = this.route;
+        emitPageInfo.layout = {
+            route: this.route,
+            className: layout.component.name,
+            importPath: layout.importPath,
+        }
+        emitPageInfo.contents = contentEmitInfos;
     }
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
         this.getContents(req, res, (contents, jsonScriptData) => {
-            this.currentPlatform.documentProps.layout = React.createElement(this.currentPlatform.layout, contents);
+            this.currentPlatform.documentProps.layout = React.createElement(this.currentPlatform.layout.component, contents);
             this.currentPlatform.documentProps.jsonScriptData = jsonScriptData;
-            let html = React.renderToString(React.createElement(this.currentPlatform.document, this.currentPlatform.documentProps));
+            let html = React.renderToString(React.createElement(this.currentPlatform.document.component, this.currentPlatform.documentProps));
             res.send(html);
         });
     }
@@ -225,6 +271,7 @@ export class Page {
         let resultJsonScriptData: JsonScriptAttributes[] = [];
         let numberOfContents = 0;
         let finishedContentFetchings = 0;
+
         for (let region in contents) {
             numberOfContents++;
             (function(region: string, _Content: typeof ComposerContent) {
@@ -234,14 +281,16 @@ export class Page {
                         id: `react-composer-json-${region}`,
                         data: JSON.stringify(result)
                     });
+
                     finishedContentFetchings++;
+
                     if (numberOfContents === finishedContentFetchings) {
                         next(resultContents, resultJsonScriptData);
                     }
                 }).catch(function(reason: Error) {
 
                 });
-            })(region, contents[region]);
+            })(region, contents[region].component);
         }
     }
 }

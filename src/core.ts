@@ -69,6 +69,20 @@ export function getIndentSize() {
     return indentStrings[1].length;
 }
 
+export interface EmitTextWriter {
+    write(s: string): void;
+    writeLine(): void;
+    increaseIndent(): void;
+    decreaseIndent(): void;
+    getText(): string;
+    rawWrite(s: string): void;
+    writeLiteral(s: string): void;
+    getTextPos(): number;
+    getLine(): number;
+    getColumn(): number;
+    getIndent(): number;
+}
+
 export function createTextWriter(newLine: String): EmitTextWriter {
     let output = "";
     let indent = 0;

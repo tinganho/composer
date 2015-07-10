@@ -115,8 +115,12 @@ export default class Harness {
                     composer.setPages({
                         [testModule.route]: function(page) {
                             page.onPlatform({ name: 'all', detect: (req: express.Request) => true })
-                                .hasDocument(Document, defaultConfigs)
-                                .hasLayout(testModule.TestLayout, testModule.contents);
+                                .hasDocument(
+                                    { component: Document, importPath: 'wmodowm' },
+                                    defaultConfigs)
+                                .hasLayout({
+                                    component: testModule.TestLayout, importPath: 'wmodowm' },
+                                    testModule.contents);
                         }
                     });
 
@@ -124,7 +128,7 @@ export default class Harness {
                     server.listen(cf.PORT, (err: any) => {
                         let filePath = path.join(root, `test/baselines/local/${fileName.replace(/\.js$/, '')}`);
                         new Nightmare()
-                            .viewport(cf.VIEW_PORT.WIDTH, cf.VIEW_PORT.HEIGHT)
+                            .viewport(cf.TEST_PAGE_VIEW_PORT.WIDTH, cf.TEST_PAGE_VIEW_PORT.HEIGHT)
                             .goto(`http://${cf.HOST}:${cf.PORT}/`)
                             .wait()
                             .screenshot(`${filePath}.jpg`)

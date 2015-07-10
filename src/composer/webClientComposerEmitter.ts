@@ -1,17 +1,15 @@
 
-/// <reference path='../../typings/node/node.d.ts'/>
-
-import {createTextWriter} from '../core';
-import * as fs from 'fs';
+import { createTextWriter } from '../core';
+import { sys } from './sys';
 
 export const enum ModuleKind {
     Amd,
     CommonJs,
 }
 
-interface ComponentImport {
+export interface ComponentEmitInfo {
     className: string;
-    path: string;
+    importPath: string;
 
     /**
      * The current route of page.
@@ -38,13 +36,13 @@ interface EmitClientComposerOptions {
     output: string;
 }
 
-export interface EmitPageInfo {
+export interface PageEmitInfo {
     route: string;
-    layout: ComponentImport;
-    contents: EmitContentInfo[];
+    layout: ComponentEmitInfo;
+    contents: ContentEmitInfo[];
 }
 
-export interface EmitContentInfo extends ComponentImport {
+export interface ContentEmitInfo extends ComponentEmitInfo {
 
     /**
      * Region of the layout this content belongs to.
@@ -52,11 +50,11 @@ export interface EmitContentInfo extends ComponentImport {
     region: string;
 }
 
-export function emitClientComposer(imports: ComponentImport[], pageInfos: EmitPageInfo, opt: EmitClientComposerOptions, writer: EmitTextWriter) {
+export function emitClientComposer(imports: ComponentEmitInfo[], pageInfos: PageEmitInfo, opt: EmitClientComposerOptions, writer: EmitTextWriter) {
     let {write, writeLine, increaseIndent} = writer;
 
     writeClientComposer();
-    fs.writeFileSync(opt.output, writer.getText(), { encoding: 'utf-8' });
+    sys.writeFile(opt.output, writer.getText());
     return;
 
     function writeClientComposer(): void {
@@ -75,11 +73,11 @@ export function emitClientComposer(imports: ComponentImport[], pageInfos: EmitPa
     /**
      * Writes `define([...], function(...) {`.
      */
-    function writeStartOfAmd(imports: ComponentImport[]): void {
+    function writeStartOfAmd(imports: ComponentEmitInfo[]): void {
         write('define([');
         for (let i in imports) {
             writeQuote();
-            write(imports[i].path);
+            write(imports[i].importPath);
             writeQuote();
             if(i !== imports.length - 1) {
                 write(',');
@@ -95,9 +93,9 @@ export function emitClientComposer(imports: ComponentImport[], pageInfos: EmitPa
         write(') {');
     }
 
-    function writeCommonJsImportList(imports: ComponentImport[]): void {
+    function writeCommonJsImportList(imports: ComponentEmitInfo[]): void {
         for (let i of imports) {
-            write(`var ${i.className} = require('${i.path}');`);
+            write(`var ${i.className} = require('${i.importPath}');`);
             writeLine();
         }
     }

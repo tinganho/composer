@@ -1,25 +1,25 @@
 
-import {EmitPageInfo} from '../../../src/composer/webClientComposerEmitter';
+import {PageEmitInfo} from '../../../src/composer/webClientComposerEmitter';
 
-export var pages: EmitPageInfo[] = [
+export var pages: PageEmitInfo[] = [
     {
         route: '/',
         layout: {
             className: 'TestLayout',
-            path: 'layouts/TestLayout',
+            importPath: 'layouts/TestLayout',
             route: '/',
         },
         contents: [
             {
                 className: 'NavigationBar',
                 region: 'TopBar',
-                path: 'contents/NavigationBar/NavigationBar',
+                importPath: 'contents/NavigationBar/NavigationBar',
                 route: '/',
             },
             {
                 className: 'Feed',
                 region: 'Body',
-                path: 'contents/Feed/Feed',
+                importPath: 'contents/Feed/Feed',
                 route: '/',
             }
         ]

@@ -1,7 +1,8 @@
 
-import {DiagnosticMessage} from './diagnostics.generated';
+import { DiagnosticMessage } from './diagnostics.generated';
+import { Map } from '../types';
 
-export {DiagnosticMessage};
+export { DiagnosticMessage };
 
 export * from '../types';
 

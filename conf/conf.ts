@@ -1,9 +1,34 @@
 
 export default {
+
+    /**
+     * Port of your web application.
+     *
+     * @type number
+     */
     PORT: 3000,
+
+    /**
+     * Default page timeout in seconds.
+     *
+     * @type string
+     */
     HOST: 'localhost',
-    VIEW_PORT: {
+
+    /**
+     * Dimensions for View port of test page.
+     *
+     * @type { HEIGHT: number,  WIDTH: number }
+     */
+    TEST_PAGE_VIEW_PORT: {
         HEIGHT: 1200,
         WIDTH: 800,
     },
+
+    /**
+     * Default page timeout in seconds.
+     *
+     * @type number
+     */
+    DEFAULT_PAGE_TIMEOUT: 30
 }

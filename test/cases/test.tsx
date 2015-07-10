@@ -73,7 +73,7 @@ interface FeedProps {
 }
 
 export class Feed extends ComposerContent<FeedProps, {}> {
-
+    
     static fetch(): Promise<FeedProps> {
         let promise = new Promise((resolve, reject) => {
             resolve({a: 'a', b: 'b'})
