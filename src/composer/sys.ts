@@ -1,5 +1,5 @@
 
-import {combinePaths} from '../core';
+import {combinePaths, contains, fileExtensionIs, map} from '../core';
 
 export interface System {
     args: string[];

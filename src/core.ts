@@ -291,3 +291,9 @@ export function rangeEquals<T>(array1: T[], array2: T[], pos: number, end: numbe
     }
     return true;
 }
+
+export function fileExtensionIs(path: string, extension: string): boolean {
+    let pathLen = path.length;
+    let extLen = extension.length;
+    return pathLen > extLen && path.substr(pathLen - extLen, extLen) === extension;
+}
