@@ -63,7 +63,7 @@ composer.init({
 ```
 
 ## Define a platform detect
-```
+```typescript
 import {PlatformDetect, Request} from 'react-composer';
 var detect implements PlatformDetect {
     detect: function(req: Request) {

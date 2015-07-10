@@ -33,6 +33,7 @@ export interface DocumentProps {
 abstract class ReactComposerComponent<P, S> extends React.Component<P, S> {
     public static name: string;
 }
+
 export class ComposerDocument<Props extends DocumentProps, States> extends ReactComposerComponent<Props, States> {}
 
 export class ComposerLayout<Props, States> extends ReactComposerComponent<Props, States> {}

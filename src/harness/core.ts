@@ -3,10 +3,6 @@ import {DiagnosticMessage} from './diagnostics.generated';
 
 import 'terminal-colors';
 
-export interface Map<T> {
-    [index: string]: T;
-}
-
 let hasOwnProperty = Object.prototype.hasOwnProperty;
 export function hasProperty<T>(map: Map<T>, key: string): boolean {
     return hasOwnProperty.call(map, key);

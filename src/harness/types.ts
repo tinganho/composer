@@ -5,10 +5,6 @@ export {DiagnosticMessage};
 
 export * from '../types';
 
-export interface Map<T> {
-    [index: string]: T;
-}
-
 export interface CommandLineOption {
     name: string;
     type: string | Map<number>;

@@ -87,7 +87,7 @@ export function emitClientComposer(imports: ComponentImport[], pageInfos: EmitPa
         }
         write('], function(');
         for (let i in imports) {
-            write(imports[i].value);
+            write(imports[i].className);
             if(i !== imports.length - 1) {
                 write(',');
             }
@@ -97,7 +97,7 @@ export function emitClientComposer(imports: ComponentImport[], pageInfos: EmitPa
 
     function writeCommonJsImportList(imports: ComponentImport[]): void {
         for (let i of imports) {
-            write(`var ${i.value} = require('${i.path}');`);
+            write(`var ${i.className} = require('${i.path}');`);
             writeLine();
         }
     }

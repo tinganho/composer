@@ -1,12 +1,10 @@
 
-/// <reference path='../../typings/node/node.d.ts'/>
 /// <reference path='../../typings/mocha/mocha.d.ts'/>
 /// <reference path='../../typings/express/express.d.ts'/>
 /// <reference path='../../typings/sinon/sinon.d.ts'/>
 /// <reference path='../../typings/react/react.d.ts'/>
 /// <reference path='../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../typings/nightmare/nightmare.d.ts'/>
-/// <reference path='../../typings/chai/chai.d.ts'/>
 /// <reference path='../../typings/morgan/morgan.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
@@ -20,8 +18,6 @@ import express = require('express');
 import * as sinon from 'sinon';
 import * as React from 'react';
 import * as http from 'http';
-import {readFile, writeFileSync} from 'fs';
-import {expect} from 'chai';
 import Nightmare = require('nightmare');
 import {parseCommandLineOptions} from './commandLineParser';
 import {printDiagnostics, printDiagnostic} from './core';

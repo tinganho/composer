@@ -134,3 +134,7 @@ export const enum CharacterCodes {
     tab = 0x09,                   // \t
     verticalTab = 0x0B,           // \v
 }
+
+export interface Map<T> {
+    [index: string]: T;
+}
