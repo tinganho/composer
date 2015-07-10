@@ -71,5 +71,4 @@ var detect implements PlatformDetect {
     },
 }
 export default detect;
-}
 ```
