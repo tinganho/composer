@@ -3,9 +3,9 @@ react-composer
 
 `react-composer` is a client/server router for your react applications. A developer defines a set of declaration for a page. Like what models and views a page should have. `react-composer` then automatically render/compose pages both on the client and server on each route.
 
-First we define some default configs:
+First we define some default document configurations:
 ```typescript
-export default var {
+export default {
     googleAnatlyticsId: 'u-1872637846324',
     styles: [
         '/public/styles/documents/default.css',
@@ -25,14 +25,12 @@ import WebPlatform from './WebPlatform'
 export default function(HomePage) {
     HomePage
         .onPlatform(WebPlatform)
-            .hasDocument(Document, defaultConfigs, {
-                
-            })
-            .hasLayout(Body_withTopBar_withFooter, {
-                TopBar: MainMenu,
-                Body: Feed,
-                Footer: Footer
-            });
+        .hasDocument(Document, defaultConfigs)
+        .hasLayout(Body_withTopBar_withFooter, {
+            TopBar: MainMenu,
+            Body: Feed,
+            Footer: Footer
+        });
 }
 ```
 
@@ -50,7 +48,7 @@ app.use(composer.pages({
     '/': HomePage,
     '/todos': TodoPage
 }));
-``` 
+```
 
 ### Initial setup
 ```typescript
@@ -69,9 +67,9 @@ composer.init({
 import {PlatformDetect, Request} from 'react-composer';
 var detect implements PlatformDetect {
     detect: function(req: Request) {
-        
+
     },
 }
-export default detect; 
+export default detect;
 }
 ```

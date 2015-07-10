@@ -2,7 +2,9 @@
 /// <reference path='../../typings/node/node.d.ts'/>
 /// <reference path='../../typings/express/express.d.ts'/>
 /// <reference path='../../typings/react/react.d.ts'/>
+/// <reference path='../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../typings/glob/glob.d.ts'/>
+/// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
 import {readFileSync as readFile} from 'fs';
 import * as React from 'react';
@@ -24,11 +26,11 @@ export interface DocumentProps {
     confs?: string[];
     title?: string;
     styles?: string[];
-    jsonScripts?: string[];
-    layout?: string;
+    jsonScriptData?: JsonScriptAttributes[];
+    layout?: any;
 }
 
-class ReactComposerComponent<P, S> extends React.Component<P, S> {
+abstract class ReactComposerComponent<P, S> extends React.Component<P, S> {
     public static name: string;
 }
 export class ComposerDocument<Props extends DocumentProps, States> extends ReactComposerComponent<Props, States> {}
@@ -36,15 +38,26 @@ export class ComposerDocument<Props extends DocumentProps, States> extends React
 export class ComposerLayout<Props, States> extends ReactComposerComponent<Props, States> {}
 
 export class ComposerContent<Props, States> extends ReactComposerComponent<Props, States> {
-    fetch () {};
+    static name: string;
+    static fetch(): Promise<any> {
+        return new Promise((resolve, reject) => {
+           resolve();
+        });
+    }
 }
 
 export interface Contents {
-    [index: string]: typeof ComposerContent;
+    [index: string]: JSX.Element;
 }
 
-interface JsonScripts {
-    [index: string]: string;
+
+interface JsonScriptAttributes {
+    id: string;
+    data: string;
+}
+
+interface JsonScriptData {
+    [index: string]: JsonScriptAttributes;
 }
 
 export interface PlatformDetect {
@@ -118,7 +131,7 @@ interface Platform {
     document?: typeof ComposerDocument;
     documentProps?: DocumentProps;
     layout?: typeof ComposerLayout;
-    contents?: Contents;
+    contents?: any;
     detect(req: Request): boolean;
 }
 
@@ -183,7 +196,7 @@ export class Page {
         this.addContents();
         this.addPages();
         if(!this.attachedUrlHandler) {
-            composerOptions.app.get(this.url, this.next.bind(this));
+            composerOptions.app.get(this.url, this.handlePageRequest.bind(this));
             this.attachedUrlHandler = true;
         }
     }
@@ -196,28 +209,38 @@ export class Page {
 
     }
 
-    private next(req: Request, res: Response, next: () => void): void {
-        let contents = this.currentPlatform.contents;
-        let contentsCounter = 0;
-        for (let region in contents) {
-            contentsCounter++;
-            (function(region: string, _Content: typeof ComposerContent) {
-                let newContent = new _Content;
-                newContent.fetch();
-            })(region, contents[region]);
-        }
-        this.getContents(req, res, (contents, jsonScripts) => {
-            this.currentPlatform.documentProps.layout = React.renderToString(React.createElement(this.currentPlatform.layout));
+    private handlePageRequest(req: Request, res: Response, next: () => void): void {
+        this.getContents(req, res, (contents, jsonScriptData) => {
+            this.currentPlatform.documentProps.layout = React.createElement(this.currentPlatform.layout, contents);
+            this.currentPlatform.documentProps.jsonScriptData = jsonScriptData;
             let html = React.renderToString(React.createElement(this.currentPlatform.document, this.currentPlatform.documentProps));
             res.send(html);
         });
     }
 
-    private getContents(req: Request, res: Response, callback: (contents: Contents, jsonScripts: JsonScripts) => void): void {
-        callback({
+    private getContents(req: Request, res: Response, next: (contents: Contents, jsonScriptData: JsonScriptAttributes[]) => void): void {
+        let contents = this.currentPlatform.contents;
+        let resultContents: Contents = {};
+        let resultJsonScriptData: JsonScriptAttributes[] = [];
+        let numberOfContents = 0;
+        let finishedContentFetchings = 0;
+        for (let region in contents) {
+            numberOfContents++;
+            (function(region: string, _Content: typeof ComposerContent) {
+                _Content.fetch().then(result => {
+                    resultContents[region] = React.createElement(_Content, result);
+                    resultJsonScriptData.push({
+                        id: `react-composer-json-${region}`,
+                        data: JSON.stringify(result)
+                    });
+                    finishedContentFetchings++;
+                    if (numberOfContents === finishedContentFetchings) {
+                        next(resultContents, resultJsonScriptData);
+                    }
+                }).catch(function(reason: Error) {
 
-        }, {
-
-        });
+                });
+            })(region, contents[region]);
+        }
     }
 }

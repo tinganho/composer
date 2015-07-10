@@ -2,27 +2,31 @@
 /// <reference path='../../typings/react/react.d.ts'/>
 /// <reference path='../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../typings/radium/radium.d.ts'/>
+/// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
 import {Page, ComposerDocument, DocumentProps, ComposerLayout, ComposerContent} from '../../src/composer/composer';
 import React = require('react');
 import Radium = require('radium');
 
-interface Regions {
-    topBar: string;
-    body: string;
-    footer: string;
+export var route = '/';
+
+interface Contents {
+    navigationBar: typeof ComposerContent;
+    feed: typeof ComposerContent;
 }
 
 @Radium
-export class TestLayout extends ComposerLayout<Regions, {}> {
-    public name = 'Body withTopBar withFooter';
+export class TestLayout extends ComposerLayout<Contents, {}> {
 
     public render() {
         return (
             <div className='Layout' style={[layoutStyles.container]}>
-                <header className='TopBar'>{this.props.topBar}</header>
-                    <div className='Body'>{this.props.body}</div>
-                <footer className='Footer'>{this.props.footer}</footer>
+                <header className='TopBar'>
+                    {this.props.navigationBar}
+                </header>
+                <div className='Body'>
+                    {this.props.feed}
+                </div>
             </div>
         );
     }
@@ -41,11 +45,51 @@ var layoutStyles: StyleRules = {
     }
 }
 
-interface States {}
-
-interface Contents {
-    TopBar: typeof ComposerContent;
-    Body: typeof ComposerContent;
-    Footer: typeof ComposerContent;
+interface NavigationBarProps {
+    a: string;
+    b: string;
 }
 
+export class NavigationBar extends ComposerContent<NavigationBarProps, {}> {
+
+    static fetch(): Promise<NavigationBarProps> {
+        let promise = new Promise((resolve, reject) => {
+            resolve({a: 'a', b: 'b'})
+        });
+
+        return promise;
+    }
+
+    public render() {
+        return (
+            <div className='NavigationBar'>{this.props.a + this.props.b}</div>
+        );
+    }
+}
+
+interface FeedProps {
+    a: string;
+    b: string;
+}
+
+export class Feed extends ComposerContent<FeedProps, {}> {
+
+    static fetch(): Promise<FeedProps> {
+        let promise = new Promise((resolve, reject) => {
+            resolve({a: 'a', b: 'b'})
+        });
+
+        return promise;
+    }
+
+    public render() {
+        return (
+            <div className='Feed'>{this.props.a + this.props.b}</div>
+        );
+    }
+}
+
+export var contents: Contents = {
+    navigationBar: NavigationBar,
+    feed: Feed
+}

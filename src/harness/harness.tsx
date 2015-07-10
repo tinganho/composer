@@ -1,4 +1,5 @@
 
+/// <reference path='../../typings/node/node.d.ts'/>
 /// <reference path='../../typings/mocha/mocha.d.ts'/>
 /// <reference path='../../typings/express/express.d.ts'/>
 /// <reference path='../../typings/sinon/sinon.d.ts'/>
@@ -7,11 +8,12 @@
 /// <reference path='../../typings/nightmare/nightmare.d.ts'/>
 /// <reference path='../../typings/chai/chai.d.ts'/>
 /// <reference path='../../typings/morgan/morgan.d.ts'/>
+/// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
 import {CommandLineOptions, Map} from './types';
 import logger = require('morgan');
 import cf from '../../conf/conf';
-import * as composer from '../composer/composer';
+import * as composer from '../composer/serverComposer';
 import {sync as glob} from 'glob';
 import * as path from 'path';
 import express = require('express');
@@ -28,23 +30,24 @@ import {Diagnostics} from './diagnostics.generated';
 declare function require(path: string): any;
 require('source-map-support').install();
 
-interface Props {
+interface Props extends composer.DocumentProps {
     layout: string;
 }
 
-interface States {}
-
-
-class Document extends composer.ComposerDocument<Props, States> {
-    name = 'Default';
-
-    render() {
+class Document extends composer.ComposerDocument<Props, {}> {
+    public render() {
         return (
-            <html lang="en">
+            <html lang='en'>
                 <head>
-                    <link rel="stylesheet" href="/public/styles/styles.css"/>
+                    <link rel='stylesheet' href='/public/styles/styles.css'/>
+                    <script src='/public/scripts/html.js'/>
+
+                    {this.props.jsonScriptData.map(attr => {
+                        <script id={attr.id}>{attr.data}</script>
+                    })}
                 </head>
-                <body dangerouslySetInnerHTML={{__html: this.props.layout}}>
+                <body>
+                    {this.props.layout}
                 </body>
             </html>
         );
@@ -64,7 +67,7 @@ let defaultConfigs: composer.DocumentProps = {
 let app: express.Express;
 
 export default class Harness {
-    options: CommandLineOptions;
+    public options: CommandLineOptions;
 
     constructor(args: string[]) {
         let {options, errors} = parseCommandLineOptions(args);
@@ -75,10 +78,18 @@ export default class Harness {
         this.options = options;
     }
 
-    runTests() {
+    public runTests() {
+        let self = this;
         let builtFolder = path.join(__dirname, '../../');
         let root = path.join(builtFolder, '../');
-        let files = glob('test/cases/*.js', { cwd: builtFolder });
+        let pattern: string;
+        if (this.options.tests) {
+            `test/cases/**/*${this.options.tests}*.js`
+        }
+        else {
+            pattern = `test/cases/**/*.js`;
+        }
+        let files = glob(pattern, { cwd: builtFolder });
         for (var file of files) {
             var fileName = path.basename(file);
 
@@ -87,6 +98,7 @@ export default class Harness {
                     app = express();
                     app.use('/public', express.static('public'));
                     app.use(logger('dev'));
+
                     composer.init({
                         app,
                         clientConfPath: './client/*.js',
@@ -98,10 +110,14 @@ export default class Harness {
                     app = null;
                 });
 
-                it('should be able to set pages', (done) => {
+                it(`image diff of ${fileName}`, function(done) {
+                    if (self.options.interactive) {
+                        this.timeout(10000000);
+                    }
+
+                    let testModule = require(path.join(builtFolder, file.replace(/\.tsx$/, '.js')));
                     composer.setPages({
-                        '/': function(page) {
-                            let testModule = require(path.join(builtFolder, file.replace(/\.tsx$/, '.js')));
+                        [testModule.route]: function(page) {
                             page.onPlatform({ name: 'all', detect: (req: express.Request) => true })
                                 .hasDocument(Document, defaultConfigs)
                                 .hasLayout(testModule.TestLayout, testModule.contents);
@@ -112,7 +128,7 @@ export default class Harness {
                     server.listen(cf.PORT, (err: any) => {
                         let filePath = path.join(root, `test/baselines/local/${fileName.replace(/\.js$/, '')}`);
                         new Nightmare()
-                            .viewport(900, 1200)
+                            .viewport(cf.VIEW_PORT.WIDTH, cf.VIEW_PORT.HEIGHT)
                             .goto(`http://${cf.HOST}:${cf.PORT}/`)
                             .wait()
                             .screenshot(`${filePath}.jpg`)
@@ -121,20 +137,16 @@ export default class Harness {
                                     printDiagnostic(Diagnostics.Could_not_start_headless_web_browser);
                                 }
 
-                                if (this.options.interactive) {
-                                    app.get('/__next', closeServer);
+                                if (self.options.interactive) {
+                                    printDiagnostic(Diagnostics.Stop_the_server_by_exiting_the_session_CTRL_plus_C);
                                 }
                                 else {
-                                    closeServer();
+                                    server.close((err: any) => {
+                                        done();
+                                    });
                                 }
                             });
                     });
-
-                    function closeServer() {
-                        server.close((err: any) => {
-                            done();
-                        });
-                    }
                 });
             });
         }

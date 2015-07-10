@@ -49,6 +49,9 @@
     },
     "gulp-rename/gulp-rename.d.ts": {
       "commit": "304a25197990aeabf8e9fd030ad927ed011b9e83"
+    },
+    "es6-promise/es6-promise.d.ts": {
+      "commit": "be03157bace6e6465e63f13073d7b68e8ea1303c"
     }
   }
 }

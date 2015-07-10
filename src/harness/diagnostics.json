@@ -6,11 +6,17 @@
         "code": 1001
     },
 
+
+
     "Could not start headless web browser.": {
         "code": 2001
     },
 
-    "Interactive starts the server until you manually stops it.": {
+
+    "Stop the server by exiting the session (CTRL + C).": {
         "code": 9000
+    },
+    "Interactive starts the server until you manually stops it.": {
+        "code": 9001
     }
 }

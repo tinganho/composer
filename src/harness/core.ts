@@ -19,7 +19,7 @@ export function includes<T>(arr: T[], search: T): boolean {
 function formatStringFromArgs(text: string, args: { [index: number]: any; }, baseIndex?: number): string {
     baseIndex = baseIndex || 0;
 
-    return text.replace(/{(\d+)}/g, (match, index?) => args[+index + baseIndex]);
+    return text.replace(/\{(\d+)\}/g, (match, index?) => args[+index + baseIndex]);
 }
 
 export function createDiagnostic(diagnostic: DiagnosticMessage, ...args: any[]): DiagnosticMessage;
@@ -43,7 +43,7 @@ export const enum AssertionLevel {
     VeryAggressive = 3,
 }
 
-export module Debug {
+export namespace Debug {
     let currentAssertionLevel = AssertionLevel.None;
 
     export function shouldAssert(level: AssertionLevel): boolean {

@@ -17,9 +17,13 @@ export var Diagnostics = {
         message: 'Could not start headless web browser.',
         code:  2001,
     },
+    Stop_the_server_by_exiting_the_session_CTRL_plus_C: {
+        message: 'Stop the server by exiting the session (CTRL + C).',
+        code:  9000,
+    },
     Interactive_starts_the_server_until_you_manually_stops_it: {
         message: 'Interactive starts the server until you manually stops it.',
-        code:  9000,
+        code:  9001,
     },
 }
 
