@@ -4,7 +4,7 @@
 /// <reference path='../../typings/radium/radium.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
-import {Page, ComposerDocument, DocumentProps, ComposerLayout, ComposerContent} from '../../src/composer/composer';
+import {Page, ComposerDocument, DocumentProps, ComposerLayout, ComposerContent} from '../../src/composer/serverComposer';
 import React = require('react');
 import Radium = require('radium');
 
@@ -73,7 +73,7 @@ interface FeedProps {
 }
 
 export class Feed extends ComposerContent<FeedProps, {}> {
-    
+
     static fetch(): Promise<FeedProps> {
         let promise = new Promise((resolve, reject) => {
             resolve({a: 'a', b: 'b'})

@@ -1,5 +1,6 @@
 
-import {CharacterCodes, Map} from './types';
+import { CharacterCodes, Map } from './types';
+import { DiagnosticMessage } from './diagnostics.generated';
 
 export function computeLineStarts(text: string): number[] {
     let result: number[] = new Array();
@@ -310,4 +311,44 @@ export function fileExtensionIs(path: string, extension: string): boolean {
     let pathLen = path.length;
     let extLen = extension.length;
     return pathLen > extLen && path.substr(pathLen - extLen, extLen) === extension;
+}
+
+export const enum AssertionLevel {
+    None = 0,
+    Normal = 1,
+    Aggressive = 2,
+    VeryAggressive = 3,
+}
+
+export function printDiagnostic(diagnostic: DiagnosticMessage): void {
+    console.log(`[ ${(<any>(diagnostic.code + '')).red} ] - ${diagnostic.message}`);
+}
+
+export function printDiagnostics(diagnostics: DiagnosticMessage[]): void {
+    for (let d of diagnostics) {
+        printDiagnostic(d);
+    }
+}
+
+export namespace Debug {
+    let currentAssertionLevel = AssertionLevel.None;
+
+    export function shouldAssert(level: AssertionLevel): boolean {
+        return currentAssertionLevel >= level;
+    }
+
+    export function assert(expression: boolean, message?: string, verboseDebugInfo?: () => string): void {
+        if (!expression) {
+            let verboseDebugString = '';
+            if (verboseDebugInfo) {
+                verboseDebugString = '\r\nVerbose Debug Information: ' + verboseDebugInfo();
+            }
+
+            throw new Error('Debug Failure. False expression: ' + (message || '') + verboseDebugString);
+        }
+    }
+
+    export function fail(message?: string): void {
+        Debug.assert(false, message);
+    }
 }

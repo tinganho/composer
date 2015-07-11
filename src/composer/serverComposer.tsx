@@ -29,15 +29,15 @@ export interface DocumentProps {
     layout?: any;
 }
 
-abstract class ReactComposerComponent<P, S> extends React.Component<P, S> {
+abstract class ComposerComponent<P, S> extends React.Component<P, S> {
     public static name: string;
 }
 
-export class ComposerDocument<Props extends DocumentProps, States> extends ReactComposerComponent<Props, States> {}
+export class ComposerDocument<Props extends DocumentProps, States> extends ComposerComponent<Props, States> {}
 
-export class ComposerLayout<Props, States> extends ReactComposerComponent<Props, States> {}
+export class ComposerLayout<Props, States> extends ComposerComponent<Props, States> {}
 
-export class ComposerContent<Props, States> extends ReactComposerComponent<Props, States> {
+export class ComposerContent<Props, States> extends ComposerComponent<Props, States> {
     static fetch(): Promise<any> {
         return new Promise((resolve, reject) => {
            resolve();
@@ -140,8 +140,12 @@ interface ContentInfo extends Info {
     component: typeof ComposerContent;
 }
 
-export interface ContentInfos {
+export interface StoredContentInfos {
     [index: string]: ContentInfo;
+}
+
+export interface ProvidedContentInfos {
+    [index: string]: ContentInfo | typeof ComposerContent;
 }
 
 interface Platform {
@@ -150,7 +154,7 @@ interface Platform {
     document?: DocumentInfo;
     documentProps?: DocumentProps;
     layout?: LayoutInfo;
-    contents?: ContentInfos;
+    contents?: StoredContentInfos;
     detect(req: Request): boolean;
 }
 
@@ -173,7 +177,52 @@ export class Page {
     private platforms: { [index: string]: Platform } = {};
     private currentPlatform: Platform;
     private currentPlatformName: string;
+    private pageEmitInfo: PageEmitInfo;
 
+    /**
+     * Set default document folder. The composer will automatically look for
+     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
+     *
+     * `.hasDocument({ component: Document, importPath: 'component/path' }, defaultConfigs)`
+     *
+     * You can simply do:
+     *
+     * `.hasDocument(Document, defaultConfigs)`
+     *
+     */
+    public defaultDocumentFolder: string;
+
+    /**
+     * Set default layout folder. The composer will automatically look for
+     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
+     *
+     * `.hasLayout({ component: Body_withTopBar_withFooter, importPath: 'component/path' }, contents)`
+     *
+     * You can simply do:
+     *
+     * `.hasLayout(Body_withTopBar_withFooter, contents)`
+     *
+     */
+    public defaultLayoutFolder: string;
+
+    /**
+     * Set default content folder. The composer will automatically look for
+     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
+     *
+     * `.hasLayout(Body_withTopBar_withFooter, {
+     *     topBar: { component: NavigationBar, importPath: 'component/path' },
+     *     body: { component: Feed, importPath: 'component/path' },
+     * })`
+     *
+     * You can simply do:
+     *
+     * `.hasLayout(Body_withTopBar_withFooter, {
+     *     topBar: NavigationBar,
+     *     body: Feed,
+     * })`
+     *
+     */
+    public defaultContentFolder: string;
 
     constructor(route: string) {
         this.route = route;
@@ -198,12 +247,21 @@ export class Page {
     /**
      * Define which document this page should have along with document properties.
      */
-    public hasDocument<T extends DocumentProps>(document: DocumentInfo, documentProps: T): Page {
+    public hasDocument<T extends DocumentProps>(document: DocumentInfo | typeof ComposerDocument, documentProps: T): Page {
         if (typeof this.currentPlatform === 'undefined') {
             throw new TypeError('You must define a platform with `.onPlatform()` method.');
         }
 
-        this.currentPlatform.document = document;
+        if (this.isInfo(document)) {
+            this.currentPlatform.document = document;
+        }
+        else {
+            this.currentPlatform.document = {
+                component: document,
+                importPath: this.defaultDocumentFolder + document.name
+            }
+        }
+
         this.currentPlatform.documentProps = documentProps;
 
         return this;
@@ -212,24 +270,53 @@ export class Page {
     /**
      * Define which layout this page should have.
      */
-    public hasLayout<C extends ContentInfos>(layout: LayoutInfo, contents: C): Page {
-        this.currentPlatform.layout = layout;
-        this.currentPlatform.contents = contents;
+    public hasLayout<C extends ProvidedContentInfos>(layout: LayoutInfo | typeof ComposerLayout, contents: C): Page {
+        if (this.isInfo(layout)) {
+            this.currentPlatform.layout = layout;
+        }
+        else {
+            this.currentPlatform.layout = {
+                component: layout,
+                importPath: this.defaultLayoutFolder + layout.name
+            }
+        }
+
+        let newContents: StoredContentInfos = {};
+        for (let region in contents) {
+            let newContent = {};
+            let content = contents[region];
+            if (this.isInfo(content)) {
+                newContents[region] = content;
+            }
+            else {
+                newContents[region] = {
+                    component: content,
+                    importPath: this.defaultContentFolder + content.name
+                }
+            }
+        }
+        this.currentPlatform.contents = newContents;
 
         return this;
     }
 
-    public serve(): void {
+    public end(): void {
         this.registerPage();
 
-        if(!this.attachedUrlHandler) {
+        if (!this.attachedUrlHandler) {
             composerOptions.app.get(this.route, this.handlePageRequest.bind(this));
             this.attachedUrlHandler = true;
         }
     }
 
+    private isInfo<T extends Info, U extends typeof ComposerComponent>(info: T | U): info is T {
+        if ((info as T).importPath) {
+            return true;
+        }
+        return false;
+    }
+
     private registerPage(): void {
-        let emitPageInfo: PageEmitInfo;
         let contentEmitInfos: ContentEmitInfo[] = [];
         let layout = this.currentPlatform.layout;
         let contents = this.currentPlatform.contents;
@@ -239,7 +326,7 @@ export class Page {
 
             contentEmitInfos.push({
 
-                 // Get the class name from the constructor.
+                // Get the class name from the constructor.
                 className: content.component.name,
                 importPath: content.importPath,
                 route: this.route,
@@ -247,13 +334,15 @@ export class Page {
             });
         }
 
-        emitPageInfo.route = this.route;
-        emitPageInfo.layout = {
+        this.pageEmitInfo = {
             route: this.route,
-            className: layout.component.name,
-            importPath: layout.importPath,
+            layout: {
+                className: layout.component.name,
+                importPath: layout.importPath,
+                route: this.route,
+            },
+            contents: contentEmitInfos,
         }
-        emitPageInfo.contents = contentEmitInfos;
     }
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
@@ -287,8 +376,8 @@ export class Page {
                     if (numberOfContents === finishedContentFetchings) {
                         next(resultContents, resultJsonScriptData);
                     }
-                }).catch(function(reason: Error) {
-
+                }).catch(reason => {
+                    console.log(reason)
                 });
             })(region, contents[region].component);
         }

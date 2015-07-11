@@ -8,7 +8,7 @@
 /// <reference path='../../typings/morgan/morgan.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
-import {CommandLineOptions, Map} from './types';
+import { CommandLineOptions, Map } from './types';
 import logger = require('morgan');
 import cf from '../../conf/conf';
 import * as composer from '../composer/serverComposer';
@@ -19,9 +19,9 @@ import * as sinon from 'sinon';
 import * as React from 'react';
 import * as http from 'http';
 import Nightmare = require('nightmare');
-import {parseCommandLineOptions} from './commandLineParser';
-import {printDiagnostics, printDiagnostic} from './core';
-import {Diagnostics} from './diagnostics.generated';
+import { parseCommandLineOptions } from './commandLineParser';
+import { printDiagnostics, printDiagnostic } from '../core';
+import { Diagnostics } from '../diagnostics.generated';
 
 declare function require(path: string): any;
 require('source-map-support').install();
@@ -62,7 +62,7 @@ let defaultConfigs: composer.DocumentProps = {
 
 let app: express.Express;
 
-export default class Harness {
+export default class HtmlRunner {
     public options: CommandLineOptions;
 
     constructor(args: string[]) {
@@ -80,10 +80,10 @@ export default class Harness {
         let root = path.join(builtFolder, '../');
         let pattern: string;
         if (this.options.tests) {
-            `test/cases/**/*${this.options.tests}*.js`
+            `test/cases/*${this.options.tests}*.js`
         }
         else {
-            pattern = `test/cases/**/*.js`;
+            pattern = `test/cases/*.js`;
         }
         let files = glob(pattern, { cwd: builtFolder });
         for (var file of files) {
@@ -115,12 +115,9 @@ export default class Harness {
                     composer.setPages({
                         [testModule.route]: function(page) {
                             page.onPlatform({ name: 'all', detect: (req: express.Request) => true })
-                                .hasDocument(
-                                    { component: Document, importPath: 'wmodowm' },
-                                    defaultConfigs)
-                                .hasLayout({
-                                    component: testModule.TestLayout, importPath: 'wmodowm' },
-                                    testModule.contents);
+                                .hasDocument(Document, defaultConfigs)
+                                .hasLayout(testModule.TestLayout, testModule.contents)
+                                .end()
                         }
                     });
 

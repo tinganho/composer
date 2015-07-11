@@ -19,10 +19,10 @@ var diagnosticMessageProps: generateTsDiagnostics.DiagnosticMessageProperties = 
 ];
 
 gulp.task('generate-diagnostics', () => {
-    gulp.src('src/harness/diagnostics.json')
+    gulp.src('src/diagnostics.json')
         .pipe(rename('diagnostics.generated.ts'))
         .pipe(generateTsDiagnostics(diagnosticMessageProps))
-        .pipe(gulp.dest('src/harness/'));
+        .pipe(gulp.dest('src/'));
 });
 
 gulp.task('d', ['generate-diagnostics']);

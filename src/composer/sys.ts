@@ -170,7 +170,11 @@ export var sys: System = (function () {
                 }
                 return process.memoryUsage().heapUsed;
             },
-            exit(exitCode?: number): void {
+
+           /**
+            * Exit process with an optional exit code.
+            */
+            exit(exitCode: number): void {
                 process.exit(exitCode);
             }
         };

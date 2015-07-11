@@ -1,5 +1,5 @@
 
-import { DiagnosticMessage } from './diagnostics.generated';
+import { DiagnosticMessage } from '../diagnostics.generated';
 import { Map } from '../types';
 
 import 'terminal-colors';
@@ -30,45 +30,5 @@ export function createDiagnostic(diagnostic: DiagnosticMessage): DiagnosticMessa
     return {
         message: text,
         code: diagnostic.code
-    }
-}
-
-export const enum AssertionLevel {
-    None = 0,
-    Normal = 1,
-    Aggressive = 2,
-    VeryAggressive = 3,
-}
-
-export namespace Debug {
-    let currentAssertionLevel = AssertionLevel.None;
-
-    export function shouldAssert(level: AssertionLevel): boolean {
-        return currentAssertionLevel >= level;
-    }
-
-    export function assert(expression: boolean, message?: string, verboseDebugInfo?: () => string): void {
-        if (!expression) {
-            let verboseDebugString = '';
-            if (verboseDebugInfo) {
-                verboseDebugString = '\r\nVerbose Debug Information: ' + verboseDebugInfo();
-            }
-
-            throw new Error('Debug Failure. False expression: ' + (message || '') + verboseDebugString);
-        }
-    }
-
-    export function fail(message?: string): void {
-        Debug.assert(false, message);
-    }
-}
-
-export function printDiagnostic(diagnostic: DiagnosticMessage): void {
-    console.log(`[ ${(<any>(diagnostic.code + '')).red} ] - ${diagnostic.message}`);
-}
-
-export function printDiagnostics(diagnostics: DiagnosticMessage[]): void {
-    for (let d of diagnostics) {
-        printDiagnostic(d);
     }
 }

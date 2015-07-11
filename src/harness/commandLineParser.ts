@@ -2,10 +2,11 @@
 /// <reference path='../../typings/glob/glob.d.ts'/>
 
 import glob = require('glob');
-import {CharacterCodes, CommandLineOptions, CommandLineOption} from './types';
-import {Map} from '../types';
-import {Diagnostics, DiagnosticMessage} from './diagnostics.generated';
-import {createDiagnostic, Debug, includes, hasProperty} from './core';
+import { CharacterCodes, CommandLineOptions, CommandLineOption} from './types';
+import { Map } from '../types';
+import { Diagnostics, DiagnosticMessage} from '../diagnostics.generated';
+import { createDiagnostic, includes, hasProperty} from './core';
+import { Debug } from '../core';
 
 export interface ParsedCommandLine {
     options: CommandLineOptions;
