@@ -9,6 +9,8 @@
 import * as React from 'react';
 import { Application, Request, Response } from 'express';
 import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo } from './webClientComposerEmitter';
+import { Debug } from '../core';
+import { Diagnostics } from '../diagnostics.generated';
 
 export { Request, Response };
 
@@ -102,12 +104,66 @@ interface ComposerOptions {
      * Set express application.
      */
     app: Application;
+
+    /**
+     * Set default document folder. The composer will automatically look for
+     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
+     *
+     * `.hasDocument({ component: Document, importPath: 'component/path' }, defaultConfigs)`
+     *
+     * You can simply do:
+     *
+     * `.hasDocument(Document, defaultConfigs)`
+     *
+     */
+    defaultDocumentFolder?: string;
+
+    /**
+     * Set default layout folder. The composer will automatically look for
+     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
+     *
+     * `.hasLayout({ component: Body_withTopBar_withFooter, importPath: 'component/path' }, contents)`
+     *
+     * You can simply do:
+     *
+     * `.hasLayout(Body_withTopBar_withFooter, contents)`
+     *
+     */
+    defaultLayoutFolder?: string;
+
+    /**
+     * Set default content folder. The composer will automatically look for
+     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
+     *
+     * `.hasLayout(Body_withTopBar_withFooter, {
+     *     topBar: { component: NavigationBar, importPath: 'component/path' },
+     *     body: { component: Feed, importPath: 'component/path' },
+     * })`
+     *
+     * You can simply do:
+     *
+     * `.hasLayout(Body_withTopBar_withFooter, {
+     *     topBar: NavigationBar,
+     *     body: Feed,
+     * })`
+     *
+     */
+    defaultContentFolder?: string;
+
+    [index: string]: any;
 }
 
 let composerOptions: ComposerOptions;
 
 export function init(options?: ComposerOptions): void {
     composerOptions = options;
+}
+
+/**
+ * Set composer options.
+ */
+export function set<T>(setting: string, value: T): void {
+    composerOptions[setting] = value;
 }
 
 export function setPages<T, U>(routes: Pages): void {
@@ -179,53 +235,16 @@ export class Page {
     private currentPlatformName: string;
     private pageEmitInfo: PageEmitInfo;
 
-    /**
-     * Set default document folder. The composer will automatically look for
-     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
-     *
-     * `.hasDocument({ component: Document, importPath: 'component/path' }, defaultConfigs)`
-     *
-     * You can simply do:
-     *
-     * `.hasDocument(Document, defaultConfigs)`
-     *
-     */
+    // Default folders for different type of components.
     public defaultDocumentFolder: string;
-
-    /**
-     * Set default layout folder. The composer will automatically look for
-     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
-     *
-     * `.hasLayout({ component: Body_withTopBar_withFooter, importPath: 'component/path' }, contents)`
-     *
-     * You can simply do:
-     *
-     * `.hasLayout(Body_withTopBar_withFooter, contents)`
-     *
-     */
     public defaultLayoutFolder: string;
-
-    /**
-     * Set default content folder. The composer will automatically look for
-     * `{folder}/{component}.tsx` and you don't need to provide `importPath`:
-     *
-     * `.hasLayout(Body_withTopBar_withFooter, {
-     *     topBar: { component: NavigationBar, importPath: 'component/path' },
-     *     body: { component: Feed, importPath: 'component/path' },
-     * })`
-     *
-     * You can simply do:
-     *
-     * `.hasLayout(Body_withTopBar_withFooter, {
-     *     topBar: NavigationBar,
-     *     body: Feed,
-     * })`
-     *
-     */
     public defaultContentFolder: string;
 
     constructor(route: string) {
         this.route = route;
+        this.defaultDocumentFolder = composerOptions.defaultDocumentFolder;
+        this.defaultLayoutFolder = composerOptions.defaultLayoutFolder;
+        this.defaultContentFolder = composerOptions.defaultContentFolder;
         routes.push(route);
     }
 
@@ -256,6 +275,9 @@ export class Page {
             this.currentPlatform.document = document;
         }
         else {
+            if (!this.defaultDocumentFolder) {
+                Debug.fail(Diagnostics.You_have_not_defined_a_default_layout_folder);
+            }
             this.currentPlatform.document = {
                 component: document,
                 importPath: this.defaultDocumentFolder + document.name
@@ -275,6 +297,9 @@ export class Page {
             this.currentPlatform.layout = layout;
         }
         else {
+            if (!this.defaultLayoutFolder) {
+                Debug.fail(Diagnostics.You_have_not_defined_a_default_layout_folder);
+            }
             this.currentPlatform.layout = {
                 component: layout,
                 importPath: this.defaultLayoutFolder + layout.name
@@ -289,6 +314,9 @@ export class Page {
                 newContents[region] = content;
             }
             else {
+                if (!this.defaultContentFolder) {
+                    Debug.fail(Diagnostics.You_have_not_defined_a_default_content_folder);
+                }
                 newContents[region] = {
                     component: content,
                     importPath: this.defaultContentFolder + content.name
@@ -300,6 +328,9 @@ export class Page {
         return this;
     }
 
+    /**
+     * Call this method to mark the end of your page declaration.
+     */
     public end(): void {
         this.registerPage();
 

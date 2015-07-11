@@ -1,6 +1,9 @@
 
 import { CharacterCodes, Map } from './types';
-import { DiagnosticMessage } from './diagnostics.generated';
+import { DiagnosticMessage,  } from './diagnostics.generated';
+import { } from ''
+import { sys } from './sys';
+import 'terminal-colors';
 
 export function computeLineStarts(text: string): number[] {
     let result: number[] = new Array();
@@ -313,15 +316,8 @@ export function fileExtensionIs(path: string, extension: string): boolean {
     return pathLen > extLen && path.substr(pathLen - extLen, extLen) === extension;
 }
 
-export const enum AssertionLevel {
-    None = 0,
-    Normal = 1,
-    Aggressive = 2,
-    VeryAggressive = 3,
-}
-
 export function printDiagnostic(diagnostic: DiagnosticMessage): void {
-    console.log(`[ ${(<any>(diagnostic.code + '')).red} ] - ${diagnostic.message}`);
+    console.log(`[ ${(<any>('C' + (diagnostic.code + ''))).red} ] - ${diagnostic.message}`);
 }
 
 export function printDiagnostics(diagnostics: DiagnosticMessage[]): void {
@@ -330,25 +326,49 @@ export function printDiagnostics(diagnostics: DiagnosticMessage[]): void {
     }
 }
 
-export namespace Debug {
-    let currentAssertionLevel = AssertionLevel.None;
+function formatStringFromArgs(text: string, args: { [index: number]: any; }, baseIndex?: number): string {
+    baseIndex = baseIndex || 0;
 
-    export function shouldAssert(level: AssertionLevel): boolean {
-        return currentAssertionLevel >= level;
+    return text.replace(/\{(\d+)\}/g, (match, index?) => args[+index + baseIndex]);
+}
+
+export function createDiagnostic(diagnostic: DiagnosticMessage, ...args: any[]): DiagnosticMessage;
+export function createDiagnostic(diagnostic: DiagnosticMessage): DiagnosticMessage {
+    let text = diagnostic.message;
+
+    if (arguments.length > 1) {
+        text = formatStringFromArgs(text, arguments, 1);
     }
 
-    export function assert(expression: boolean, message?: string, verboseDebugInfo?: () => string): void {
-        if (!expression) {
-            let verboseDebugString = '';
-            if (verboseDebugInfo) {
-                verboseDebugString = '\r\nVerbose Debug Information: ' + verboseDebugInfo();
-            }
+    return {
+        message: text,
+        code: diagnostic.code
+    }
+}
 
-            throw new Error('Debug Failure. False expression: ' + (message || '') + verboseDebugString);
+export namespace Debug {
+    export function assert(expression: boolean, diagnostic: DiagnosticMessage, ...args: string[]): void {
+        if (!expression) {
+            if (args.length) {
+                printDiagnostic(createDiagnostic(diagnostic, args));
+            }
+            else {
+                printDiagnostic(diagnostic);
+            }
+            sys.exit();
         }
     }
 
-    export function fail(message?: string): void {
-        Debug.assert(false, message);
+    export function fail(diagnostic: DiagnosticMessage, ...args: string[]): void {
+        Debug.assert(false, diagnostic, ...args);
     }
+}
+
+let hasOwnProperty = Object.prototype.hasOwnProperty;
+export function hasProperty<T>(map: Map<T>, key: string): boolean {
+    return hasOwnProperty.call(map, key);
+}
+
+export function includes<T>(arr: T[], search: T): boolean {
+    return arr.indexOf(search) !== -1;
 }

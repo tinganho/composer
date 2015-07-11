@@ -5,8 +5,7 @@ import glob = require('glob');
 import { CharacterCodes, CommandLineOptions, CommandLineOption} from './types';
 import { Map } from '../types';
 import { Diagnostics, DiagnosticMessage} from '../diagnostics.generated';
-import { createDiagnostic, includes, hasProperty} from './core';
-import { Debug } from '../core';
+import { createDiagnostic, Debug, includes, hasProperty } from '../core';
 
 export interface ParsedCommandLine {
     options: CommandLineOptions;
@@ -85,7 +84,10 @@ export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLin
                             options[opt.name] = args[i++] || '';
                             break;
                         default:
-                            Debug.fail('Unknown option type defined in command line options.');
+                            let type = opt.type;
+                            if (typeof type === 'string') {
+                                Debug.fail(Diagnostics.Unknown_option_type_0_declared_in_your_command_line_options, type);
+                            }
                     }
                 }
                 else {

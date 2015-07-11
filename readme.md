@@ -20,11 +20,11 @@ Then, we define a page:
 import defaultConfigs from './defaultConfigs';
 import Document from './Document';
 import Body_withTopBar_withFooter from './Body_withTopBar_withFooter';
-import WebPlatform from './WebPlatform'
+import Web from './Platforms/Web'
 
 export default function(HomePage) {
     HomePage
-        .onPlatform(WebPlatform)
+        .onPlatform(Web)
         .hasDocument(Document, defaultConfigs)
         .hasLayout(Body_withTopBar_withFooter, {
             TopBar: MainMenu,
@@ -62,13 +62,14 @@ composer.init({
 });
 ```
 
-## Define a platform detect
+## Define a platform
 ```typescript
-import {PlatformDetect, Request} from 'react-composer';
-var detect implements PlatformDetect {
-    detect: function(req: Request) {
+import { Request } from 'express';
+import {PlatformDetect} from 'react-composer';
 
-    },
+export var Web implements PlatformDetect {
+    name: 'web',
+    detect: (req: Request) => true,
 }
 export default detect;
 ```

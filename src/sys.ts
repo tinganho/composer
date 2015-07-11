@@ -1,5 +1,5 @@
 
-import { combinePaths, contains, fileExtensionIs, map } from '../core';
+import { combinePaths, contains, fileExtensionIs, map } from './core';
 
 export interface System {
     args: string[];
@@ -174,7 +174,7 @@ export var sys: System = (function () {
            /**
             * Exit process with an optional exit code.
             */
-            exit(exitCode?: number): void {
+            exit(exitCode: number): void {
                 process.exit(exitCode);
             }
         };

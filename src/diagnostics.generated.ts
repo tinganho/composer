@@ -13,6 +13,22 @@ export var Diagnostics = {
         message: 'Unknown command line options \'{0}\'.',
         code:  1001,
     },
+    Unknown_option_type_0_declared_in_your_command_line_options: {
+        message: 'Unknown option type \'{0}\' declared in your command line options.',
+        code:  1002,
+    },
+    You_have_not_defined_a_default_document_folder: {
+        message: 'You have not defined a default document folder.',
+        code:  1003,
+    },
+    You_have_not_defined_a_default_layout_folder: {
+        message: 'You have not defined a default layout folder.',
+        code:  1004,
+    },
+    You_have_not_defined_a_default_content_folder: {
+        message: 'You have not defined a default content folder.',
+        code:  1005,
+    },
     Could_not_start_headless_web_browser: {
         message: 'Could not start headless web browser.',
         code:  2001,

@@ -98,7 +98,10 @@ export default class HtmlRunner {
                     composer.init({
                         app,
                         clientConfPath: './client/*.js',
-                        rootPath: __dirname
+                        rootPath: __dirname,
+                        defaultDocumentFolder: 'documents',
+                        defaultLayoutFolder: 'layouts',
+                        defaultContentFolder: 'contents',
                     });
                 });
 
