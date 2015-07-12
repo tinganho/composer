@@ -12,9 +12,8 @@ import fs = require('fs');
 
 var diagnosticMessageProps: generateTsDiagnostics.DiagnosticMessageProperties = [
     {
-        name: 'code',
-        type: 'number',
-        optional: false,
+        name: 'category',
+        type: 'string',
     },
 ];
 

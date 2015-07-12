@@ -1,5 +1,5 @@
 
-export default {
+export var cf = {
 
     /**
      * Port of your web application.

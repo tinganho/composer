@@ -31,6 +31,7 @@
   "dependencies": {
     "es6-promise": "^2.3.0",
     "glob": "^5.0.13",
+    "gulp-generate-ts-diagnostics": "^0.1.16",
     "image-diff": "^1.2.0",
     "terminal-colors": "^0.1.3"
   }

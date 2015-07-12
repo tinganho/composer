@@ -10,27 +10,27 @@
 
 import { CommandLineOptions, Map } from './types';
 import logger = require('morgan');
-import cf from '../../conf/conf';
-import * as composer from '../composer/serverComposer';
+import { cf } from '../../conf/conf';
+import { ServerComposer, DocumentProps, ComposerDocument } from '../composer/serverComposer';
+import React = require('react');
 import {sync as glob} from 'glob';
 import * as path from 'path';
 import express = require('express');
-import * as sinon from 'sinon';
-import * as React from 'react';
-import * as http from 'http';
-import Nightmare = require('nightmare');
+import { createServer } from 'http';
+import HeadlessWebBrowser = require('nightmare');
 import { parseCommandLineOptions } from './commandLineParser';
 import { printDiagnostics, printDiagnostic } from '../core';
 import { Diagnostics } from '../diagnostics.generated';
+import { expect } from 'chai';
 
 declare function require(path: string): any;
 require('source-map-support').install();
 
-interface Props extends composer.DocumentProps {
+interface Props extends DocumentProps {
     layout: string;
 }
 
-class Document extends composer.ComposerDocument<Props, {}> {
+class Document extends ComposerDocument<Props, {}> {
     public render() {
         return (
             <html lang='en'>
@@ -56,7 +56,7 @@ interface LayoutRegions {
     Footer: string;
 }
 
-let defaultConfigs: composer.DocumentProps = {
+let defaultConfigs: DocumentProps = {
     confs: ['default']
 }
 
@@ -87,15 +87,16 @@ export default class HtmlRunner {
         }
         let files = glob(pattern, { cwd: builtFolder });
         for (var file of files) {
-            var fileName = path.basename(file);
+            var jsFileName = path.basename(file);
+            var fileName = jsFileName.replace(/\.js$/, '');
 
-            describe(fileName, () => {
+            describe('Web client tests:', () => {
                 beforeEach(() => {
                     app = express();
                     app.use('/public', express.static('public'));
                     app.use(logger('dev'));
 
-                    composer.init({
+                    let serverComposer = new ServerComposer({
                         app,
                         clientConfPath: './client/*.js',
                         rootPath: __dirname,
@@ -103,31 +104,33 @@ export default class HtmlRunner {
                         defaultLayoutFolder: 'layouts',
                         defaultContentFolder: 'contents',
                     });
+
+                    serverComposer.shouldEmitWebClientComposer(`test/baselines/local/${fileName}.js`);
+
+                    let testModule = require(path.join(builtFolder, file.replace(/\.tsx$/, '.js')));
+                    serverComposer.setPages({
+                        [testModule.route]: function(page) {
+                            page.onPlatform({ name: 'all', detect: (req: express.Request) => true })
+                                .hasDocument(Document, defaultConfigs)
+                                .hasLayout(testModule.TestLayout, testModule.contents)
+                                .end();
+                        }
+                    });
                 });
 
                 afterEach(() => {
                     app = null;
                 });
 
-                it(`image diff of ${fileName}`, function(done) {
+                it(`image for ${fileName}`, function(done) {
                     if (self.options.interactive) {
                         this.timeout(10000000);
                     }
 
-                    let testModule = require(path.join(builtFolder, file.replace(/\.tsx$/, '.js')));
-                    composer.setPages({
-                        [testModule.route]: function(page) {
-                            page.onPlatform({ name: 'all', detect: (req: express.Request) => true })
-                                .hasDocument(Document, defaultConfigs)
-                                .hasLayout(testModule.TestLayout, testModule.contents)
-                                .end()
-                        }
-                    });
-
-                    let server = http.createServer(app);
+                    let server = createServer(app);
                     server.listen(cf.PORT, (err: any) => {
-                        let filePath = path.join(root, `test/baselines/local/${fileName.replace(/\.js$/, '')}`);
-                        new Nightmare()
+                        let filePath = path.join(root, `test/baselines/local/${fileName}`);
+                        new HeadlessWebBrowser()
                             .viewport(cf.TEST_PAGE_VIEW_PORT.WIDTH, cf.TEST_PAGE_VIEW_PORT.HEIGHT)
                             .goto(`http://${cf.HOST}:${cf.PORT}/`)
                             .wait()
@@ -147,6 +150,10 @@ export default class HtmlRunner {
                                 }
                             });
                     });
+                });
+
+                it(`web client composer for ${fileName}`, done => {
+                    done();
                 });
             });
         }

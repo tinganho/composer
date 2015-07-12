@@ -317,7 +317,7 @@ export function fileExtensionIs(path: string, extension: string): boolean {
 }
 
 export function printDiagnostic(diagnostic: DiagnosticMessage): void {
-    console.log(`[ ${(<any>('C' + (diagnostic.code + ''))).red} ] - ${diagnostic.message}`);
+    console.log(`[ ${(<any>(diagnostic.category + '')).red} ] - ${diagnostic.message}`);
 }
 
 export function printDiagnostics(diagnostics: DiagnosticMessage[]): void {
@@ -342,7 +342,7 @@ export function createDiagnostic(diagnostic: DiagnosticMessage): DiagnosticMessa
 
     return {
         message: text,
-        code: diagnostic.code
+        category: diagnostic.category
     }
 }
 

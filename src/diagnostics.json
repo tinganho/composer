@@ -1,37 +1,40 @@
 {
     "Compiler option '{0}' expects an argument.": {
-        "code": 1000
+        "category": "error"
     },
     "Unknown command line options '{0}'.": {
-        "code": 1001
+        "category": "error"
     },
     "Unknown option type '{0}' declared in your command line options.": {
-        "code": 1002
+        "category": "error"
     },
     "You have not defined a default document folder.": {
-        "code": 1003
+        "category": "error"
     },
     "You have not defined a default layout folder.": {
-        "code": 1004
+        "category": "error"
     },
     "You have not defined a default content folder.": {
-        "code": 1005
+        "category": "error"
     },
     "Could not start headless web browser.": {
-        "code": 1006
+        "category": "error"
     },
     "Cannot call '.emitWebClientComposer()' before '.setPages(...)'.": {
-        "code": 1007
+        "category": "error"
     },
     "You must define a platform with '.onPlatform(...)' method before you call 'hasDocument(...)'.": {
-        "code": 1008
+        "category": "error"
+    },
+    "Only one instance of Composer is allowed.": {
+        "category": "error"
     },
 
 
     "Stop the server by exiting the session (CTRL + C).": {
-        "code": 9000
+        "category": "message"
     },
     "Interactive starts the server until you manually stops it.": {
-        "code": 9001
+        "category": "message"
     }
 }

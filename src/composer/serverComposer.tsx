@@ -6,13 +6,14 @@
 /// <reference path='../../typings/glob/glob.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
-import * as React from 'react';
+import { renderToString, Component, createElement } from 'react';
 import { Application, Request, Response } from 'express';
 import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
 import { Debug, createTextWriter } from '../core';
 import { Diagnostics } from '../diagnostics.generated';
-
-export { Request, Response };
+import { sys } from '../sys';
+import * as path from 'path'
+import { cf } from '../../conf/conf';
 
 export interface Pages {
     [page: string]: (page: Page) => void;
@@ -26,7 +27,7 @@ export interface DocumentProps {
     layout?: any;
 }
 
-abstract class ComposerComponent<P, S> extends React.Component<P, S> {
+abstract class ComposerComponent<P, S> extends Component<P, S> {
     public static name: string;
 }
 
@@ -148,60 +149,69 @@ interface ComposerOptions {
     [index: string]: any;
 }
 
-let composerOptions: ComposerOptions;
-let pageCount: number;
+let serverComposer: ServerComposer;
+export class ServerComposer {
 
-export function init(options?: ComposerOptions): void {
-    composerOptions = options;
-}
+    public options: ComposerOptions;
+    public pageCount: number;
 
-/**
- * Set composer options.
- */
-export function set<T>(setting: string, value: T): void {
-    composerOptions[setting] = value;
-}
+    /**
+     * Storage for all page emit infos.
+     */
+    public pageEmitInfos: PageEmitInfo[] = [];
 
-export function setPages<T, U>(routes: Pages): void {
-    let count = 0;
-    for (let url in routes) {
-        routes[url](new Page(url));
+    /**
+     * Page emit info output file.
+     */
+    public pageEmitInfoOutput: string;
 
-        count++;
+    /**
+     * A flag for not open the server.
+     */
+    public noServer: boolean = false;
+
+    /**
+     * Output file for client composer.
+     */
+    public clientComposerOutput: string;
+
+    constructor(options: ComposerOptions) {
+        if (serverComposer) {
+            Debug.fail(Diagnostics.Only_one_instance_of_Composer_is_allowed);
+        }
+        this.options = options;
+        serverComposer = this;
     }
-    pageCount = count;
-}
 
-
-/**
- * A flag for not open the server.
- */
-let noServer: boolean = false;
-
-/**
- * Storage for all page emit infos.
- */
-let pageEmitInfos: PageEmitInfo[] = [];
-
-/**
- * Page emit info output file.
- */
-let pageEmitInfoOutput: string;
-
-/**
- * Emit web client composer object. It
- * @param output Output file for the composer object.
- */
-export function emitWebClientComposer(output: string) {
-    if (pageEmitInfos.length > 0) {
-        Debug.fail(Diagnostics.Cannot_call_emitWebClientComposer_before_setPages);
+    public set<T>(setting: string, value: T): void {
+        this.options[setting] = value;
     }
-    noServer = true;
+
+    public setPages<T, U>(routes: Pages): void {
+        let count = 0;
+        for (let url in routes) {
+            routes[url](new Page(url, this));
+
+            count++;
+        }
+        this.pageCount = count;
+    }
+
+    /**
+     * Emit web client composer object.
+     * @param output Output file for the composer object.
+     */
+    public shouldEmitWebClientComposer(output: string) {
+        if (this.pageEmitInfos.length > 0) {
+            Debug.fail(Diagnostics.Cannot_call_emitWebClientComposer_before_setPages);
+        }
+        this.clientComposerOutput = output;
+    }
 }
 
 interface Info {
     importPath: string;
-    component: typeof React.Component;
+    component: typeof Component;
 }
 
 interface DocumentInfo extends Info {
@@ -246,6 +256,8 @@ export class Page {
      */
     public route: string;
 
+    public serverComposer: ServerComposer;
+
     /**
      * A flag for checking if this page have attached a URL handler.
      */
@@ -254,16 +266,9 @@ export class Page {
     private currentPlatform: Platform;
     private currentPlatformName: string;
 
-    // Default folders for different type of components.
-    public defaultDocumentFolder: string;
-    public defaultLayoutFolder: string;
-    public defaultContentFolder: string;
-
-    constructor(route: string) {
+    constructor(route: string, serverComposer: ServerComposer) {
         this.route = route;
-        this.defaultDocumentFolder = composerOptions.defaultDocumentFolder;
-        this.defaultLayoutFolder = composerOptions.defaultLayoutFolder;
-        this.defaultContentFolder = composerOptions.defaultContentFolder;
+        this.serverComposer = serverComposer;
     }
 
     /**
@@ -285,7 +290,7 @@ export class Page {
      * Define which document this page should have along with document properties.
      */
     public hasDocument<T extends DocumentProps>(document: DocumentInfo | typeof ComposerDocument, documentProps: T): Page {
-        if (typeof this.currentPlatform === 'undefined') {
+        if (!this.currentPlatform) {
             Debug.fail(Diagnostics.You_must_define_a_platform_with_onPlatform_method_before_you_call_hasDocument);
         }
 
@@ -293,12 +298,12 @@ export class Page {
             this.currentPlatform.document = document;
         }
         else {
-            if (!this.defaultDocumentFolder) {
+            if (!this.serverComposer.options.defaultDocumentFolder) {
                 Debug.fail(Diagnostics.You_have_not_defined_a_default_layout_folder);
             }
             this.currentPlatform.document = {
                 component: document,
-                importPath: this.defaultDocumentFolder + document.name
+                importPath: path.join(this.serverComposer.options.defaultDocumentFolder, document.name),
             }
         }
 
@@ -315,12 +320,12 @@ export class Page {
             this.currentPlatform.layout = layout;
         }
         else {
-            if (!this.defaultLayoutFolder) {
+            if (!this.serverComposer.options.defaultLayoutFolder) {
                 Debug.fail(Diagnostics.You_have_not_defined_a_default_layout_folder);
             }
             this.currentPlatform.layout = {
                 component: layout,
-                importPath: this.defaultLayoutFolder + layout.name
+                importPath: path.join(this.serverComposer.options.defaultLayoutFolder, layout.name),
             }
         }
 
@@ -332,12 +337,12 @@ export class Page {
                 newContents[region] = content;
             }
             else {
-                if (!this.defaultContentFolder) {
+                if (!this.serverComposer.options.defaultContentFolder) {
                     Debug.fail(Diagnostics.You_have_not_defined_a_default_content_folder);
                 }
                 newContents[region] = {
                     component: content,
-                    importPath: this.defaultContentFolder + content.name
+                    importPath: path.join(this.serverComposer.options.defaultContentFolder, content.name),
                 }
             }
         }
@@ -352,8 +357,8 @@ export class Page {
     public end(): void {
         this.registerPage();
 
-        if (!this.attachedUrlHandler && !noServer) {
-            composerOptions.app.get(this.route, this.handlePageRequest.bind(this));
+        if (!this.attachedUrlHandler && !this.serverComposer.noServer) {
+            this.serverComposer.options.app.get(this.route, this.handlePageRequest.bind(this));
             this.attachedUrlHandler = true;
         }
     }
@@ -382,7 +387,7 @@ export class Page {
             });
         }
 
-        pageEmitInfos.push({
+        this.serverComposer.pageEmitInfos.push({
             route: this.route,
             document: {
                 className: document.component.name,
@@ -397,9 +402,9 @@ export class Page {
             contents: contentEmitInfos,
         });
 
-        if (pageEmitInfos.length === pageCount) {
-            let writer = createTextWriter('\n');
-            emitComposer(this.getAllImportPaths(pageEmitInfos), pageEmitInfos, writer, { moduleKind: ModuleKind.Amd });
+        if (this.serverComposer.pageEmitInfos.length === this.serverComposer.pageCount) {
+            let writer = createTextWriter(cf.DEFAULT_NEW_LINE);
+            emitComposer(this.getAllImportPaths(this.serverComposer.pageEmitInfos), this.serverComposer.pageEmitInfos, writer, { moduleKind: ModuleKind.Amd });
         }
     }
 
@@ -431,9 +436,9 @@ export class Page {
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
         this.getContents(req, res, (contents, jsonScriptData) => {
-            this.currentPlatform.documentProps.layout = React.createElement(this.currentPlatform.layout.component, contents);
+            this.currentPlatform.documentProps.layout = createElement(this.currentPlatform.layout.component, contents);
             this.currentPlatform.documentProps.jsonScriptData = jsonScriptData;
-            let html = React.renderToString(React.createElement(this.currentPlatform.document.component, this.currentPlatform.documentProps));
+            let html = renderToString(createElement(this.currentPlatform.document.component, this.currentPlatform.documentProps));
             res.send(html);
         });
     }
@@ -449,7 +454,7 @@ export class Page {
             numberOfContents++;
             (function(region: string, ContentComponent: typeof ComposerContent) {
                 ContentComponent.fetch().then(result => {
-                    resultContents[region] = React.createElement(ContentComponent, result);
+                    resultContents[region] = createElement(ContentComponent, result);
                     resultJsonScriptData.push({
                         id: `react-composer-json-${region}`,
                         data: JSON.stringify(result)

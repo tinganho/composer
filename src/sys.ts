@@ -1,5 +1,8 @@
 
+/// <reference path='../typings/node/node.d.ts'/>
+
 import { combinePaths, contains, fileExtensionIs, map } from './core';
+import { createServer } from 'http';
 
 export interface System {
     args: string[];
@@ -39,9 +42,10 @@ declare class Enumerator {
 
 export var sys: System = (function () {
     function getNodeSystem(): System {
-        var _fs = require("fs");
-        var _path = require("path");
+        var _fs = require('fs');
+        var _path = require('path');
         var _os = require('os');
+        var _http = require('http');
 
         var platform: string = _os.platform();
         // win32\win64 are case insensitive platforms, MacOS (darwin) by default is also case insensitive

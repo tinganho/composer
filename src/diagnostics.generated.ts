@@ -1,53 +1,57 @@
 
 export interface DiagnosticMessage {
     message: string;
-    code: number;
+    category: string;
 }
 
 export var Diagnostics = {
     Compiler_option_0_expects_an_argument: {
         message: 'Compiler option \'{0}\' expects an argument.',
-        code:  1000,
+        category: 'error',
     },
     Unknown_command_line_options_0: {
         message: 'Unknown command line options \'{0}\'.',
-        code:  1001,
+        category: 'error',
     },
     Unknown_option_type_0_declared_in_your_command_line_options: {
         message: 'Unknown option type \'{0}\' declared in your command line options.',
-        code:  1002,
+        category: 'error',
     },
     You_have_not_defined_a_default_document_folder: {
         message: 'You have not defined a default document folder.',
-        code:  1003,
+        category: 'error',
     },
     You_have_not_defined_a_default_layout_folder: {
         message: 'You have not defined a default layout folder.',
-        code:  1004,
+        category: 'error',
     },
     You_have_not_defined_a_default_content_folder: {
         message: 'You have not defined a default content folder.',
-        code:  1005,
+        category: 'error',
     },
     Could_not_start_headless_web_browser: {
         message: 'Could not start headless web browser.',
-        code:  1006,
+        category: 'error',
     },
     Cannot_call_emitWebClientComposer_before_setPages: {
         message: 'Cannot call \'.emitWebClientComposer()\' before \'.setPages(...)\'.',
-        code:  1007,
+        category: 'error',
     },
     You_must_define_a_platform_with_onPlatform_method_before_you_call_hasDocument: {
         message: 'You must define a platform with \'.onPlatform(...)\' method before you call \'hasDocument(...)\'.',
-        code:  1008,
+        category: 'error',
+    },
+    Only_one_instance_of_Composer_is_allowed: {
+        message: 'Only one instance of Composer is allowed.',
+        category: 'error',
     },
     Stop_the_server_by_exiting_the_session_CTRL_plus_C: {
         message: 'Stop the server by exiting the session (CTRL + C).',
-        code:  9000,
+        category: 'message',
     },
     Interactive_starts_the_server_until_you_manually_stops_it: {
         message: 'Interactive starts the server until you manually stops it.',
-        code:  9001,
+        category: 'message',
     },
 }
 
