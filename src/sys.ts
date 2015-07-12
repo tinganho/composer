@@ -45,7 +45,6 @@ export var sys: System = (function () {
         var _fs = require('fs');
         var _path = require('path');
         var _os = require('os');
-        var _http = require('http');
 
         var platform: string = _os.platform();
         // win32\win64 are case insensitive platforms, MacOS (darwin) by default is also case insensitive

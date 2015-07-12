@@ -1,6 +1,6 @@
 
 import { createTextWriter } from '../core';
-import { sys } from './sys';
+import { sys } from '../sys';
 
 export const enum ModuleKind {
     Amd,

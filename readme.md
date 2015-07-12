@@ -65,7 +65,7 @@ composer.init({
 ## Define a platform
 ```typescript
 import { Request } from 'express';
-import {PlatformDetect} from 'react-composer';
+import { PlatformDetect } from 'react-composer';
 
 export var Web implements PlatformDetect {
     name: 'web',

@@ -91,7 +91,7 @@ export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLin
                     }
                 }
                 else {
-                    if (!includes(mochaDefaultOptions, s)) {
+                    if (!process.env.MOCHA && !includes(mochaDefaultOptions, s)) {
                         errors.push(createDiagnostic(Diagnostics.Unknown_command_line_options_0, s));
                     }
                 }

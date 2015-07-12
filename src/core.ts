@@ -1,7 +1,6 @@
 
 import { CharacterCodes, Map } from './types';
-import { DiagnosticMessage,  } from './diagnostics.generated';
-import { } from ''
+import { DiagnosticMessage } from './diagnostics.generated';
 import { sys } from './sys';
 import 'terminal-colors';
 

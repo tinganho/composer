@@ -7,12 +7,13 @@
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
 import { renderToString, Component, createElement } from 'react';
-import { Application, Request, Response } from 'express';
+import { Express, Request, Response } from 'express';
 import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
 import { Debug, createTextWriter } from '../core';
 import { Diagnostics } from '../diagnostics.generated';
 import { sys } from '../sys';
 import * as path from 'path'
+import { createServer, Server } from 'http';
 import { cf } from '../../conf/conf';
 
 export interface Pages {
@@ -99,7 +100,7 @@ interface ComposerOptions {
     /**
      * Set express application.
      */
-    app: Application;
+    app: Express;
 
     /**
      * Set default document folder. The composer will automatically look for
@@ -154,6 +155,7 @@ export class ServerComposer {
 
     public options: ComposerOptions;
     public pageCount: number;
+    public server: Server;
 
     /**
      * Storage for all page emit infos.
@@ -187,7 +189,7 @@ export class ServerComposer {
         this.options[setting] = value;
     }
 
-    public setPages<T, U>(routes: Pages): void {
+    public setPages(routes: Pages): void {
         let count = 0;
         for (let url in routes) {
             routes[url](new Page(url, this));
@@ -201,11 +203,58 @@ export class ServerComposer {
      * Emit web client composer object.
      * @param output Output file for the composer object.
      */
-    public shouldEmitWebClientComposer(output: string) {
+    public shouldEmitWebClientComposer(output: string): void {
         if (this.pageEmitInfos.length > 0) {
             Debug.fail(Diagnostics.Cannot_call_emitWebClientComposer_before_setPages);
         }
         this.clientComposerOutput = output;
+    }
+
+    public start(callback?: (err?: Error) => void): void {
+        this.server = createServer(this.options.app);
+        this.server.listen(cf.PORT, callback);
+    }
+
+    public stop(callback?: (err?: Error) => void): void {
+        this.server.close((err?: Error) => {
+            callback(err);
+            this.server = undefined;
+            serverComposer = undefined;
+        });
+    }
+
+    public emitWebClientComposer(): void {
+        if (this.pageEmitInfos.length === this.pageCount) {
+            let writer = createTextWriter(cf.DEFAULT_NEW_LINE);
+            emitComposer(this.getAllImportPaths(this.pageEmitInfos), this.pageEmitInfos, writer, { moduleKind: ModuleKind.Amd });
+            writer.getText();
+        }
+    }
+
+    private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentEmitInfo[] {
+        let componentEmitInfos: ComponentEmitInfo[] = [];
+        let classNames: string[] = []
+        for (let pageEmitInfo of pageEmitInfos) {
+            if (classNames.indexOf(pageEmitInfo.document.className) === -1) {
+                componentEmitInfos.push(pageEmitInfo.document);
+            }
+
+            if (classNames.indexOf(pageEmitInfo.layout.className) === -1) {
+                componentEmitInfos.push(pageEmitInfo.layout);
+            }
+
+            for (let contentEmitInfo of pageEmitInfo.contents) {
+                if (classNames.indexOf(contentEmitInfo.className) === -1) {
+                    componentEmitInfos.push({
+                        className: contentEmitInfo.className,
+                        importPath: contentEmitInfo.importPath,
+                        route: contentEmitInfo.route
+                    });
+                }
+            }
+        }
+
+        return componentEmitInfos;
     }
 }
 
@@ -299,7 +348,7 @@ export class Page {
         }
         else {
             if (!this.serverComposer.options.defaultDocumentFolder) {
-                Debug.fail(Diagnostics.You_have_not_defined_a_default_layout_folder);
+                Debug.fail(Diagnostics.You_have_not_defined_a_default_document_folder);
             }
             this.currentPlatform.document = {
                 component: document,
@@ -401,37 +450,6 @@ export class Page {
             },
             contents: contentEmitInfos,
         });
-
-        if (this.serverComposer.pageEmitInfos.length === this.serverComposer.pageCount) {
-            let writer = createTextWriter(cf.DEFAULT_NEW_LINE);
-            emitComposer(this.getAllImportPaths(this.serverComposer.pageEmitInfos), this.serverComposer.pageEmitInfos, writer, { moduleKind: ModuleKind.Amd });
-        }
-    }
-
-    private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentEmitInfo[] {
-        let componentEmitInfos: ComponentEmitInfo[] = [];
-        let classNames: string[] = []
-        for (let pageEmitInfo of pageEmitInfos) {
-            if (classNames.indexOf(pageEmitInfo.document.className) === -1) {
-                componentEmitInfos.push(pageEmitInfo.document);
-            }
-
-            if (classNames.indexOf(pageEmitInfo.layout.className) === -1) {
-                componentEmitInfos.push(pageEmitInfo.layout);
-            }
-
-            for (let contentEmitInfo of pageEmitInfo.contents) {
-                if (classNames.indexOf(contentEmitInfo.className) === -1) {
-                    componentEmitInfos.push({
-                        className: contentEmitInfo.className,
-                        importPath: contentEmitInfo.importPath,
-                        route: contentEmitInfo.route
-                    });
-                }
-            }
-        }
-
-        return componentEmitInfos;
     }
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
