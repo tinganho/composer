@@ -17,11 +17,14 @@
     "You have not defined a default content folder.": {
         "code": 1005
     },
-
-
-
     "Could not start headless web browser.": {
-        "code": 2001
+        "code": 1006
+    },
+    "Cannot call '.emitWebClientComposer()' before '.setPages(...)'.": {
+        "code": 1007
+    },
+    "You must define a platform with '.onPlatform(...)' method before you call 'hasDocument(...)'.": {
+        "code": 1008
     },
 
 

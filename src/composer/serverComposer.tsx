@@ -8,16 +8,11 @@
 
 import * as React from 'react';
 import { Application, Request, Response } from 'express';
-import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo } from './webClientComposerEmitter';
-import { Debug } from '../core';
+import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
+import { Debug, createTextWriter } from '../core';
 import { Diagnostics } from '../diagnostics.generated';
 
 export { Request, Response };
-
-let imports: string[] = [];
-let importNames: string[] = [];
-let importPaths: string[] = [];
-let routes: string [] = [];
 
 export interface Pages {
     [page: string]: (page: Page) => void;
@@ -154,6 +149,7 @@ interface ComposerOptions {
 }
 
 let composerOptions: ComposerOptions;
+let pageCount: number;
 
 export function init(options?: ComposerOptions): void {
     composerOptions = options;
@@ -167,16 +163,40 @@ export function set<T>(setting: string, value: T): void {
 }
 
 export function setPages<T, U>(routes: Pages): void {
+    let count = 0;
     for (let url in routes) {
         routes[url](new Page(url));
+
+        count++;
     }
+    pageCount = count;
 }
 
-/**
- * When all your pages is defined, call this function to generate a client composer.
- */
-export function generateComposer(): void {
 
+/**
+ * A flag for not open the server.
+ */
+let noServer: boolean = false;
+
+/**
+ * Storage for all page emit infos.
+ */
+let pageEmitInfos: PageEmitInfo[] = [];
+
+/**
+ * Page emit info output file.
+ */
+let pageEmitInfoOutput: string;
+
+/**
+ * Emit web client composer object. It
+ * @param output Output file for the composer object.
+ */
+export function emitWebClientComposer(output: string) {
+    if (pageEmitInfos.length > 0) {
+        Debug.fail(Diagnostics.Cannot_call_emitWebClientComposer_before_setPages);
+    }
+    noServer = true;
 }
 
 interface Info {
@@ -233,7 +253,6 @@ export class Page {
     private platforms: { [index: string]: Platform } = {};
     private currentPlatform: Platform;
     private currentPlatformName: string;
-    private pageEmitInfo: PageEmitInfo;
 
     // Default folders for different type of components.
     public defaultDocumentFolder: string;
@@ -245,7 +264,6 @@ export class Page {
         this.defaultDocumentFolder = composerOptions.defaultDocumentFolder;
         this.defaultLayoutFolder = composerOptions.defaultLayoutFolder;
         this.defaultContentFolder = composerOptions.defaultContentFolder;
-        routes.push(route);
     }
 
     /**
@@ -268,7 +286,7 @@ export class Page {
      */
     public hasDocument<T extends DocumentProps>(document: DocumentInfo | typeof ComposerDocument, documentProps: T): Page {
         if (typeof this.currentPlatform === 'undefined') {
-            throw new TypeError('You must define a platform with `.onPlatform()` method.');
+            Debug.fail(Diagnostics.You_must_define_a_platform_with_onPlatform_method_before_you_call_hasDocument);
         }
 
         if (this.isInfo(document)) {
@@ -334,7 +352,7 @@ export class Page {
     public end(): void {
         this.registerPage();
 
-        if (!this.attachedUrlHandler) {
+        if (!this.attachedUrlHandler && !noServer) {
             composerOptions.app.get(this.route, this.handlePageRequest.bind(this));
             this.attachedUrlHandler = true;
         }
@@ -349,6 +367,7 @@ export class Page {
 
     private registerPage(): void {
         let contentEmitInfos: ContentEmitInfo[] = [];
+        let document = this.currentPlatform.document;
         let layout = this.currentPlatform.layout;
         let contents = this.currentPlatform.contents;
 
@@ -356,8 +375,6 @@ export class Page {
             let content = contents[region];
 
             contentEmitInfos.push({
-
-                // Get the class name from the constructor.
                 className: content.component.name,
                 importPath: content.importPath,
                 route: this.route,
@@ -365,15 +382,51 @@ export class Page {
             });
         }
 
-        this.pageEmitInfo = {
+        pageEmitInfos.push({
             route: this.route,
+            document: {
+                className: document.component.name,
+                importPath: document.importPath,
+                route: this.route,
+            },
             layout: {
                 className: layout.component.name,
                 importPath: layout.importPath,
                 route: this.route,
             },
             contents: contentEmitInfos,
+        });
+
+        if (pageEmitInfos.length === pageCount) {
+            let writer = createTextWriter('\n');
+            emitComposer(this.getAllImportPaths(pageEmitInfos), pageEmitInfos, writer, { moduleKind: ModuleKind.Amd });
         }
+    }
+
+    private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentEmitInfo[] {
+        let componentEmitInfos: ComponentEmitInfo[] = [];
+        let classNames: string[] = []
+        for (let pageEmitInfo of pageEmitInfos) {
+            if (classNames.indexOf(pageEmitInfo.document.className) === -1) {
+                componentEmitInfos.push(pageEmitInfo.document);
+            }
+
+            if (classNames.indexOf(pageEmitInfo.layout.className) === -1) {
+                componentEmitInfos.push(pageEmitInfo.layout);
+            }
+
+            for (let contentEmitInfo of pageEmitInfo.contents) {
+                if (classNames.indexOf(contentEmitInfo.className) === -1) {
+                    componentEmitInfos.push({
+                        className: contentEmitInfo.className,
+                        importPath: contentEmitInfo.importPath,
+                        route: contentEmitInfo.route
+                    });
+                }
+            }
+        }
+
+        return componentEmitInfos;
     }
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
@@ -394,9 +447,9 @@ export class Page {
 
         for (let region in contents) {
             numberOfContents++;
-            (function(region: string, _Content: typeof ComposerContent) {
-                _Content.fetch().then(result => {
-                    resultContents[region] = React.createElement(_Content, result);
+            (function(region: string, ContentComponent: typeof ComposerContent) {
+                ContentComponent.fetch().then(result => {
+                    resultContents[region] = React.createElement(ContentComponent, result);
                     resultJsonScriptData.push({
                         id: `react-composer-json-${region}`,
                         data: JSON.stringify(result)

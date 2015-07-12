@@ -30,5 +30,12 @@ export default {
      *
      * @type number
      */
-    DEFAULT_PAGE_TIMEOUT: 30
+    DEFAULT_PAGE_TIMEOUT: 30,
+
+    /**
+     * Default new line for output files.
+     *
+     * @type number
+     */
+    DEFAULT_NEW_LINE: '\n',
 }

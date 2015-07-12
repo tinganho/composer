@@ -33,11 +33,11 @@ interface EmitTextWriter {
 
 interface EmitClientComposerOptions {
     moduleKind: ModuleKind;
-    output: string;
 }
 
 export interface PageEmitInfo {
     route: string;
+    document: ComponentEmitInfo;
     layout: ComponentEmitInfo;
     contents: ContentEmitInfo[];
 }
@@ -50,11 +50,10 @@ export interface ContentEmitInfo extends ComponentEmitInfo {
     region: string;
 }
 
-export function emitClientComposer(imports: ComponentEmitInfo[], pageInfos: PageEmitInfo, opt: EmitClientComposerOptions, writer: EmitTextWriter) {
+export function emitComposer(imports: ComponentEmitInfo[], pageInfos: PageEmitInfo[], writer: EmitTextWriter, opt: EmitClientComposerOptions) {
     let {write, writeLine, increaseIndent} = writer;
 
     writeClientComposer();
-    sys.writeFile(opt.output, writer.getText());
     return;
 
     function writeClientComposer(): void {

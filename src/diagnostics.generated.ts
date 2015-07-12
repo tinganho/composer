@@ -31,7 +31,15 @@ export var Diagnostics = {
     },
     Could_not_start_headless_web_browser: {
         message: 'Could not start headless web browser.',
-        code:  2001,
+        code:  1006,
+    },
+    Cannot_call_emitWebClientComposer_before_setPages: {
+        message: 'Cannot call \'.emitWebClientComposer()\' before \'.setPages(...)\'.',
+        code:  1007,
+    },
+    You_must_define_a_platform_with_onPlatform_method_before_you_call_hasDocument: {
+        message: 'You must define a platform with \'.onPlatform(...)\' method before you call \'hasDocument(...)\'.',
+        code:  1008,
     },
     Stop_the_server_by_exiting_the_session_CTRL_plus_C: {
         message: 'Stop the server by exiting the session (CTRL + C).',
