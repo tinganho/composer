@@ -1,5 +1,5 @@
 
-import { createTextWriter } from '../core';
+import { createTextWriter, forEach } from '../core';
 import { sys } from '../sys';
 
 export const enum ModuleKind {
@@ -10,11 +10,6 @@ export const enum ModuleKind {
 export interface ComponentEmitInfo {
     className: string;
     importPath: string;
-
-    /**
-     * The current route of page.
-     */
-    route: string;
 }
 
 interface EmitTextWriter {
@@ -50,18 +45,34 @@ export interface ContentEmitInfo extends ComponentEmitInfo {
     region: string;
 }
 
-export function emitComposer(imports: ComponentEmitInfo[], pageInfos: PageEmitInfo[], writer: EmitTextWriter, opt: EmitClientComposerOptions) {
-    let {write, writeLine, increaseIndent} = writer;
+export function emitComposer(
+    appName: string,
+    clientRouterPath: string,
+    imports: ComponentEmitInfo[],
+    pageInfos: PageEmitInfo[],
+    writer: EmitTextWriter,
+    opt: EmitClientComposerOptions) {
+
+    let {write, writeLine, increaseIndent, decreaseIndent } = writer;
 
     writeClientComposer();
     return;
 
     function writeClientComposer(): void {
         if (opt.moduleKind === ModuleKind.Amd) {
-            writeStartOfAmd(imports);
+            writeAmdStart();
+            increaseIndent();
         }
         else {
-            writeCommonJsImportList(imports);
+            writeCommonJsImportList();
+        }
+
+        writeBindings();
+        writeRoutingTable();
+        writeRouterInit();
+        if (opt.moduleKind === ModuleKind.Amd) {
+            decreaseIndent();
+            writeAmdEnd();
         }
     }
 
@@ -69,30 +80,122 @@ export function emitComposer(imports: ComponentEmitInfo[], pageInfos: PageEmitIn
         write('\'');
     }
 
+    function writeBindings(): void {
+        write(`var ${appName} = {};`);
+        writeLine();
+        write(`window.${appName} = ${appName};`);
+        writeLine();
+        write(`${appName}.Component = { Document: {}, Layout: {}, Content: {} };`);
+        writeLine();
+        for (let pageInfo of pageInfos) {
+            let document = pageInfo.document.className;
+            write(`${appName}.Component.Document.${document} = ${document};`);
+            writeLine();
+            let layout = pageInfo.layout.className;
+            write(`${appName}.Component.Layout.${layout} = ${layout};`);
+            writeLine();
+
+            for (let contentInfo of pageInfo.contents) {
+                let content = contentInfo.className;
+                write(`${appName}.Component.Content.${content} = ${content};`);
+                writeLine();
+            }
+        }
+        writeLine();
+        writeLine();
+    }
+
+    function writeRoutingTable(): void {
+        write(`${appName}.RoutingTable = [`);
+        writeLine();
+        increaseIndent();
+        forEach(pageInfos, (pageInfo, index) => {
+            write('{');
+            writeLine();
+            increaseIndent();
+            write(`route: '${pageInfo.route}',`);
+            writeLine();
+            write(`document: `);
+            writeComponentEmitInfo(pageInfo.document);
+            write(',');
+            writeLine();
+            write(`layout: `);
+            writeComponentEmitInfo(pageInfo.layout);
+            write(',');
+            writeLine();
+            write('contents: [');
+            writeLine();
+            increaseIndent();
+            forEach(pageInfo.contents, (content, index) => {
+                writeComponentEmitInfo(content);
+                if (index !== pageInfo.contents.length -1) {
+                    write(',');
+                }
+                writeLine();
+            });
+            decreaseIndent();
+            write(']');
+            writeLine();
+            decreaseIndent();
+            write('}');
+            if (index !== pageInfos.length -1) {
+                write(',');
+            }
+            writeLine();
+        });
+        decreaseIndent();
+        writeLine();
+        write('];');
+        writeLine();
+    }
+
+    function writeRouterInit() {
+        write('ComposerRouter.init(App.RoutingTable);');
+        writeLine();
+    }
+
+    function writeComponentEmitInfo(component: ComponentEmitInfo): void {
+        write('{');
+        increaseIndent();
+        writeLine();
+        write(`className: '${component.className}',`);
+        writeLine();
+        write(`importPath: '${component.importPath}'`);
+        writeLine();
+        decreaseIndent();
+        write('}');
+    }
+
     /**
      * Writes `define([...], function(...) {`.
      */
-    function writeStartOfAmd(imports: ComponentEmitInfo[]): void {
+    function writeAmdStart(): void {
         write('define([');
-        for (let i in imports) {
+        for (let i = 0; i<imports.length; i++) {
             writeQuote();
             write(imports[i].importPath);
             writeQuote();
-            if(i !== imports.length - 1) {
-                write(',');
-            }
+            write(', ');
         }
+        writeQuote();
+        write(clientRouterPath);
+        writeQuote();
         write('], function(');
-        for (let i in imports) {
+        for (let i = 0; i<imports.length; i++) {
             write(imports[i].className);
-            if(i !== imports.length - 1) {
-                write(',');
-            }
+            write(', ');
         }
+        write('ComposerRouter');
         write(') {');
+        writeLine();
     }
 
-    function writeCommonJsImportList(imports: ComponentEmitInfo[]): void {
+    function writeAmdEnd() {
+        write('});');
+        writeLine();
+    }
+
+    function writeCommonJsImportList(): void {
         for (let i of imports) {
             write(`var ${i.className} = require('${i.importPath}');`);
             writeLine();

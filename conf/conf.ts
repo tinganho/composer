@@ -26,6 +26,11 @@ export var cf = {
     },
 
     /**
+     * Default app name.
+     */
+    DEFAULT_APP_NAME: 'App',
+
+    /**
      * Default page timeout in seconds.
      *
      * @type number

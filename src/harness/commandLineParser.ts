@@ -28,9 +28,11 @@ let optionDeclarations: CommandLineOption[] = [
         shortName: 't',
         type: 'string',
     },
+    {
+        name: 'showEmitBindings',
+        type: 'boolean',
+    },
 ];
-
-let mochaDefaultOptions: string[] = ['timeout', 'reporter'];
 
 export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLine {
     let options: CommandLineOptions = {};
@@ -91,7 +93,7 @@ export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLin
                     }
                 }
                 else {
-                    if (!process.env.MOCHA && !includes(mochaDefaultOptions, s)) {
+                    if (!process.env.TESTING) {
                         errors.push(createDiagnostic(Diagnostics.Unknown_command_line_options_0, s));
                     }
                 }

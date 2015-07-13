@@ -17,6 +17,7 @@ interface Contents {
 
 @Radium
 export class TestLayout extends ComposerLayout<Contents, {}> {
+    public static className = 'TestLayout';
 
     public render() {
         return (

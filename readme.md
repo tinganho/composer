@@ -57,7 +57,7 @@ var app = express();
 ...
 composer.init({
     app,
-    clientConfPath: './conf/client',
+    clientConfigurationPath: './conf/client',
     rootPath: __dirname
 });
 ```

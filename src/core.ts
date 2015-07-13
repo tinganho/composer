@@ -346,6 +346,7 @@ export function createDiagnostic(diagnostic: DiagnosticMessage): DiagnosticMessa
 }
 
 export namespace Debug {
+    let debugText = `---- ${(`debug` as any).yellow} ----`;
     export function assert(expression: boolean, diagnostic: DiagnosticMessage, ...args: string[]): void {
         if (!expression) {
             if (args.length) {
@@ -356,6 +357,12 @@ export namespace Debug {
             }
             sys.exit();
         }
+    }
+
+    export function debug(text: string): void {
+        console.log(debugText);
+        console.log(text);
+        console.log(debugText);
     }
 
     export function fail(diagnostic: DiagnosticMessage, ...args: string[]): void {
@@ -370,4 +377,9 @@ export function hasProperty<T>(map: Map<T>, key: string): boolean {
 
 export function includes<T>(arr: T[], search: T): boolean {
     return arr.indexOf(search) !== -1;
+}
+
+export function printError(err: Error): void {
+    console.log(err.message);
+    console.log((err as any).stack);
 }

@@ -19,7 +19,8 @@ import express = require('express');
 import { createServer } from 'http';
 import HeadlessWebBrowser = require('nightmare');
 import { parseCommandLineOptions } from './commandLineParser';
-import { printDiagnostics, printDiagnostic } from '../core';
+import { printDiagnostics, printDiagnostic, printError } from '../core';
+import { sys } from '../sys';
 import { Diagnostics } from '../diagnostics.generated';
 import { expect } from 'chai';
 
@@ -80,12 +81,14 @@ export default class HtmlRunner {
 
         let serverComposer = new ServerComposer({
             app,
-            clientConfPath: './client/*.js',
-            rootPath: __dirname,
+            clientRouterOutput: 'public/scripts/router.js',
+            bindingsOutput: 'public/scripts/bindings.js',
+            clientConfigurationPath: './client/*.js',
+            rootPath: path.join(__dirname, '../../../'),
             defaultDocumentFolder: 'documents',
             defaultLayoutFolder: 'layouts',
             defaultContentFolder: 'contents',
-        });
+        }, this.options);
 
         if (shouldEmitComposer) {
             serverComposer.shouldEmitWebClientComposer(`test/baselines/local/${fileName}.js`);
@@ -102,6 +105,11 @@ export default class HtmlRunner {
         });
 
         return serverComposer;
+    }
+
+    private stopServerDueToError(serverComposer: ServerComposer, err: Error, callback: () => void) {
+        printError(err);
+        serverComposer.stop(callback);
     }
 
     public runTests(): void {
@@ -128,15 +136,20 @@ export default class HtmlRunner {
                         let app = express();
                         let serverComposer = self.createComposer(app, fileName, /*shouldEmitComposer*/false);
                         serverComposer.start(err => {
-                            let filePath = path.join(this.root, `test/baselines/local/${fileName}`);
-                            new HeadlessWebBrowser()
+                            if (err) {
+                                this.stopServerDueToError(serverComposer, err, () => done());
+                            }
+
+                            let filePath = path.join(self.root, `test/baselines/local/${fileName}`);
+                            new HeadlessWebBrowser({ port: 8000 })
                                 .viewport(cf.TEST_PAGE_VIEW_PORT.WIDTH, cf.TEST_PAGE_VIEW_PORT.HEIGHT)
                                 .goto(`http://${cf.HOST}:${cf.PORT}/`)
                                 .wait()
                                 .screenshot(`${filePath}.jpg`)
-                                .run((err, nightmare) => {
+                                .run((err, headlessWebBrowser) => {
                                     if(err) {
                                         printDiagnostic(Diagnostics.Could_not_start_headless_web_browser);
+                                        printError(err);
                                     }
 
                                     if (self.options.interactive) {
@@ -150,12 +163,16 @@ export default class HtmlRunner {
                                         });
                                     }
                                 });
+
                         });
                     });
 
                     it(`web client composer for ${fileName}`, done => {
                         let app = express();
                         let serverComposer = self.createComposer(app, fileName, /*shouldEmitComposer*/true);
+                        serverComposer.emitBindings();
+                        serverComposer.emitClientRouter();
+                        done();
                     });
                 });
             })(fileName);

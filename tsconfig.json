@@ -10,6 +10,7 @@
         "jsx": "react"
     },
     "exclude": [
+        "src/client",
         "node_modules"
     ]
 }

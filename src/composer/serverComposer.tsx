@@ -5,16 +5,18 @@
 /// <reference path='../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../typings/glob/glob.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
+/// <reference path='../../node_modules/typescript/bin/typescript.d.ts'/>
 
 import { renderToString, Component, createElement } from 'react';
 import { Express, Request, Response } from 'express';
 import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
-import { Debug, createTextWriter } from '../core';
+import { Debug, createTextWriter, printError } from '../core';
 import { Diagnostics } from '../diagnostics.generated';
 import { sys } from '../sys';
 import * as path from 'path'
 import { createServer, Server } from 'http';
 import { cf } from '../../conf/conf';
+import * as ts from 'typescript';
 
 export interface Pages {
     [page: string]: (page: Page) => void;
@@ -29,7 +31,17 @@ export interface DocumentProps {
 }
 
 abstract class ComposerComponent<P, S> extends Component<P, S> {
+    /**
+     * This static property is a native readonly JS property and it is automatically set to the
+     * constructor's name.
+     */
     public static name: string;
+
+    /**
+     * Some decorators wraps a class with their own class and thus alters the name of a
+     * constructor. Please set this property to supercede such changes.
+     */
+    public static className: string;
 }
 
 export class ComposerDocument<Props extends DocumentProps, States> extends ComposerComponent<Props, States> {}
@@ -69,9 +81,29 @@ export interface PlatformDetect {
 interface ComposerOptions {
 
     /**
+     * App name.
+     */
+    appName?: string;
+
+    /**
+     * Module kind.
+     */
+    moduleKind?: ModuleKind;
+
+    /**
+     * Define the output file for client router.
+     */
+    clientRouterOutput: string,
+
+    /**
      * Path to client configuration path.
      */
-    clientConfPath: string;
+    clientConfigurationPath: string;
+
+    /**
+     * Define the output file for your bingings.
+     */
+    bindingsOutput: string,
 
     /**
      * If you have set the flag `inProduction` to true. You would need to provide
@@ -152,7 +184,7 @@ interface ComposerOptions {
 
 let serverComposer: ServerComposer;
 export class ServerComposer {
-
+    public commandLineOptions: any;
     public options: ComposerOptions;
     public pageCount: number;
     public server: Server;
@@ -177,11 +209,22 @@ export class ServerComposer {
      */
     public clientComposerOutput: string;
 
-    constructor(options: ComposerOptions) {
+    constructor(options: ComposerOptions, commandLineOptions?: any) {
         if (serverComposer) {
             Debug.fail(Diagnostics.Only_one_instance_of_Composer_is_allowed);
         }
+        if (!options.appName) {
+            options.appName = cf.DEFAULT_APP_NAME;
+        }
+        if (!options.moduleKind) {
+            options.moduleKind = ModuleKind.Amd;
+        }
+        if (commandLineOptions) {
+            this.commandLineOptions = commandLineOptions;
+        }
         this.options = options;
+        this.options.clientRouterOutput = path.join(this.options.rootPath, this.options.clientRouterOutput);
+        this.options.bindingsOutput = path.join(this.options.rootPath, this.options.bindingsOutput);
         serverComposer = this;
     }
 
@@ -212,6 +255,9 @@ export class ServerComposer {
 
     public start(callback?: (err?: Error) => void): void {
         this.server = createServer(this.options.app);
+        this.server.on('error', (err: Error) => {
+            printError(err);
+        });
         this.server.listen(cf.PORT, callback);
     }
 
@@ -223,12 +269,36 @@ export class ServerComposer {
         });
     }
 
-    public emitWebClientComposer(): void {
+    public emitBindings(): void {
         if (this.pageEmitInfos.length === this.pageCount) {
             let writer = createTextWriter(cf.DEFAULT_NEW_LINE);
-            emitComposer(this.getAllImportPaths(this.pageEmitInfos), this.pageEmitInfos, writer, { moduleKind: ModuleKind.Amd });
-            writer.getText();
+            emitComposer(
+                this.options.appName,
+                this.options.clientRouterOutput,
+                this.getAllImportPaths(this.pageEmitInfos),
+                this.pageEmitInfos,
+                writer,
+                { moduleKind: this.options.moduleKind }
+            );
+            let text = writer.getText();
+            sys.writeFile(this.options.bindingsOutput, text);
+            if (this.commandLineOptions.showEmitBindings) {
+                Debug.debug(text);
+            }
         }
+    }
+
+    public emitClientRouter(): void {
+        let routerSource = sys.readFile(path.join(__dirname, '../client/router.ts').replace('/built', ''));
+        let moduleKind: ts.ModuleKind;
+        if (this.options.moduleKind === ModuleKind.Amd) {
+            moduleKind = ts.ModuleKind.AMD;
+        }
+        else {
+            moduleKind = ts.ModuleKind.CommonJS;
+        }
+        let jsSource = ts.transpile(routerSource, { module: moduleKind });
+        sys.writeFile(this.options.clientRouterOutput, jsSource)
     }
 
     private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentEmitInfo[] {
@@ -248,7 +318,6 @@ export class ServerComposer {
                     componentEmitInfos.push({
                         className: contentEmitInfo.className,
                         importPath: contentEmitInfo.importPath,
-                        route: contentEmitInfo.route
                     });
                 }
             }
@@ -352,7 +421,7 @@ export class Page {
             }
             this.currentPlatform.document = {
                 component: document,
-                importPath: path.join(this.serverComposer.options.defaultDocumentFolder, document.name),
+                importPath: path.join(this.serverComposer.options.defaultDocumentFolder, this.getClassName(document)),
             }
         }
 
@@ -374,7 +443,7 @@ export class Page {
             }
             this.currentPlatform.layout = {
                 component: layout,
-                importPath: path.join(this.serverComposer.options.defaultLayoutFolder, layout.name),
+                importPath: path.join(this.serverComposer.options.defaultLayoutFolder, this.getClassName(layout)),
             }
         }
 
@@ -391,7 +460,7 @@ export class Page {
                 }
                 newContents[region] = {
                     component: content,
-                    importPath: path.join(this.serverComposer.options.defaultContentFolder, content.name),
+                    importPath: path.join(this.serverComposer.options.defaultContentFolder, this.getClassName(content)),
                 }
             }
         }
@@ -419,6 +488,10 @@ export class Page {
         return false;
     }
 
+    private getClassName(c: typeof ComposerComponent): string {
+        return c.className ? c.className : c.name;
+    }
+
     private registerPage(): void {
         let contentEmitInfos: ContentEmitInfo[] = [];
         let document = this.currentPlatform.document;
@@ -429,9 +502,8 @@ export class Page {
             let content = contents[region];
 
             contentEmitInfos.push({
-                className: content.component.name,
+                className: this.getClassName(content.component),
                 importPath: content.importPath,
-                route: this.route,
                 region: region,
             });
         }
@@ -439,14 +511,12 @@ export class Page {
         this.serverComposer.pageEmitInfos.push({
             route: this.route,
             document: {
-                className: document.component.name,
+                className: this.getClassName(document.component),
                 importPath: document.importPath,
-                route: this.route,
             },
             layout: {
-                className: layout.component.name,
+                className: this.getClassName(layout.component),
                 importPath: layout.importPath,
-                route: this.route,
             },
             contents: contentEmitInfos,
         });
