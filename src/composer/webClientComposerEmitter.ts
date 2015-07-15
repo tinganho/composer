@@ -3,6 +3,7 @@ import { createTextWriter, forEach } from '../core';
 import { sys } from '../sys';
 
 export const enum ModuleKind {
+    None,
     Amd,
     CommonJs,
 }
@@ -150,7 +151,7 @@ export function emitComposer(
     }
 
     function writeRouterInit() {
-        write('ComposerRouter.init(App.RoutingTable);');
+        write(`ComposerRouter.init(${appName}.RoutingTable, ${appName}.Components);`);
         writeLine();
     }
 
@@ -200,6 +201,7 @@ export function emitComposer(
             write(`var ${i.className} = require('${i.importPath}');`);
             writeLine();
         }
+        write(`var ComposerRouter = require('${clientRouterPath}');`)
     }
 
     function writeVariableList(vars: string[]): void {

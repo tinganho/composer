@@ -11,6 +11,7 @@ export interface System {
     write(s: string): void;
     readFile(path: string, encoding?: string): string;
     writeFile(path: string, data: string, writeByteOrderMark?: boolean): void;
+    deleteFile(fileName: string): void;
     watchFile?(path: string, callback: (path: string) => void): FileWatcher;
     resolvePath(path: string): string;
     fileExists(path: string): boolean;
@@ -88,6 +89,10 @@ export var sys: System = (function () {
             _fs.writeFileSync(fileName, data, "utf8");
         }
 
+        function deleteFile(fileName: string): void {
+            _fs.unlinkSync(fileName);
+        }
+
         function getCanonicalPath(path: string): string {
             return useCaseSensitiveFileNames ? path.toLowerCase() : path;
         }
@@ -130,6 +135,7 @@ export var sys: System = (function () {
             },
             readFile,
             writeFile,
+            deleteFile,
             watchFile: (fileName, callback) => {
                 // watchFile polls a file every 250ms, picking up file notifications.
                 _fs.watchFile(fileName, { persistent: true, interval: 250 }, fileChanged);

@@ -29,6 +29,9 @@
     "Only one instance of Composer is allowed.": {
         "category": "error"
     },
+    "Could not get folder name from {0}.": {
+        "category": "error"
+    },
 
 
     "Stop the server by exiting the session (CTRL + C).": {

@@ -4,10 +4,10 @@
 /// <reference path='../../typings/react/react.d.ts'/>
 /// <reference path='../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../typings/glob/glob.d.ts'/>
-/// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 /// <reference path='../../node_modules/typescript/bin/typescript.d.ts'/>
+/// <reference path='../client/router.d.ts'/>
 
-import { renderToString, Component, createElement } from 'react';
+import { renderToString, Component, createElement, MouseEvent } from 'react';
 import { Express, Request, Response } from 'express';
 import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
 import { Debug, createTextWriter, printError } from '../core';
@@ -17,56 +17,46 @@ import * as path from 'path'
 import { createServer, Server } from 'http';
 import { cf } from '../../conf/conf';
 import * as ts from 'typescript';
+import connectModrewrite = require('connect-modrewrite');
+import {
+    ComposerLayout,
+    ComposerDocument,
+    ComposerContent,
+    ComposerComponent,
+    DocumentProps,
+    Info,
+    ProvidedContentInfos,
+    StoredContentInfos,
+    LayoutInfo,
+    DocumentInfo,
+    JsonScriptAttributes
+} from '../client/components';
 
 export interface Pages {
     [page: string]: (page: Page) => void;
 }
 
-export interface DocumentProps {
-    confs?: string[];
-    title?: string;
-    styles?: string[];
-    jsonScriptData?: JsonScriptAttributes[];
-    layout?: any;
+interface LinkProps {
+    to: string;
 }
 
-abstract class ComposerComponent<P, S> extends Component<P, S> {
-    /**
-     * This static property is a native readonly JS property and it is automatically set to the
-     * constructor's name.
-     */
-    public static name: string;
+export class Link extends Component<LinkProps, {}> {
 
-    /**
-     * Some decorators wraps a class with their own class and thus alters the name of a
-     * constructor. Please set this property to supercede such changes.
-     */
-    public static className: string;
-}
+    public navigatTo(event: React.MouseEvent) {
+        event.preventDefault();
 
-export class ComposerDocument<Props extends DocumentProps, States> extends ComposerComponent<Props, States> {}
+        ComposerRouter.navigateTo(this.props.to);
+    }
 
-export class ComposerLayout<Props, States> extends ComposerComponent<Props, States> {}
-
-export class ComposerContent<Props, States> extends ComposerComponent<Props, States> {
-    static fetch(): Promise<any> {
-        return new Promise((resolve, reject) => {
-           resolve();
-        });
+    public render() {
+        return (
+            <a href={this.props.to} onClick={this.navigatTo}></a>
+        );
     }
 }
 
 export interface Contents {
     [index: string]: JSX.Element;
-}
-
-interface JsonScriptAttributes {
-    id: string;
-    data: string;
-}
-
-interface JsonScriptData {
-    [index: string]: JsonScriptAttributes;
 }
 
 export interface PlatformDetect {
@@ -223,9 +213,8 @@ export class ServerComposer {
             this.commandLineOptions = commandLineOptions;
         }
         this.options = options;
-        this.options.clientRouterOutput = path.join(this.options.rootPath, this.options.clientRouterOutput);
-        this.options.bindingsOutput = path.join(this.options.rootPath, this.options.bindingsOutput);
-        serverComposer = this;
+        this.options.clientRouterOutput = this.options.clientRouterOutput;
+        this.options.bindingsOutput =this.options.bindingsOutput;
     }
 
     public set<T>(setting: string, value: T): void {
@@ -240,17 +229,8 @@ export class ServerComposer {
             count++;
         }
         this.pageCount = count;
-    }
-
-    /**
-     * Emit web client composer object.
-     * @param output Output file for the composer object.
-     */
-    public shouldEmitWebClientComposer(output: string): void {
-        if (this.pageEmitInfos.length > 0) {
-            Debug.fail(Diagnostics.Cannot_call_emitWebClientComposer_before_setPages);
-        }
-        this.clientComposerOutput = output;
+        this.emitBindings();
+        this.emitClientRouter();
     }
 
     public start(callback?: (err?: Error) => void): void {
@@ -281,24 +261,29 @@ export class ServerComposer {
                 { moduleKind: this.options.moduleKind }
             );
             let text = writer.getText();
-            sys.writeFile(this.options.bindingsOutput, text);
+            sys.writeFile(path.join(this.options.rootPath, this.options.bindingsOutput), text);
             if (this.commandLineOptions.showEmitBindings) {
                 Debug.debug(text);
             }
         }
     }
 
+    private moduleKindToTsModuleKind(moduleKind: ModuleKind): ts.ModuleKind {
+        switch (moduleKind) {
+            case ModuleKind.Amd:
+                return ts.ModuleKind.AMD;
+            case ModuleKind.CommonJs:
+                return ts.ModuleKind.CommonJS;
+            default:
+                return ts.ModuleKind.None;
+        }
+    }
+
     public emitClientRouter(): void {
         let routerSource = sys.readFile(path.join(__dirname, '../client/router.ts').replace('/built', ''));
-        let moduleKind: ts.ModuleKind;
-        if (this.options.moduleKind === ModuleKind.Amd) {
-            moduleKind = ts.ModuleKind.AMD;
-        }
-        else {
-            moduleKind = ts.ModuleKind.CommonJS;
-        }
+        let moduleKind = this.moduleKindToTsModuleKind(this.options.moduleKind);
         let jsSource = ts.transpile(routerSource, { module: moduleKind });
-        sys.writeFile(this.options.clientRouterOutput, jsSource)
+        sys.writeFile(path.join(this.options.rootPath, this.options.clientRouterOutput), jsSource)
     }
 
     private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentEmitInfo[] {
@@ -325,31 +310,6 @@ export class ServerComposer {
 
         return componentEmitInfos;
     }
-}
-
-interface Info {
-    importPath: string;
-    component: typeof Component;
-}
-
-interface DocumentInfo extends Info {
-    component: typeof ComposerDocument;
-}
-
-interface LayoutInfo extends Info {
-    component: typeof ComposerLayout;
-}
-
-interface ContentInfo extends Info {
-    component: typeof ComposerContent;
-}
-
-export interface StoredContentInfos {
-    [index: string]: ContentInfo;
-}
-
-export interface ProvidedContentInfos {
-    [index: string]: ContentInfo | typeof ComposerContent;
 }
 
 interface Platform {

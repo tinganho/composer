@@ -45,6 +45,10 @@ export var Diagnostics = {
         message: 'Only one instance of Composer is allowed.',
         category: 'error',
     },
+    Could_not_get_folder_name_from_0: {
+        message: 'Could not get folder name from {0}.',
+        category: 'error',
+    },
     Stop_the_server_by_exiting_the_session_CTRL_plus_C: {
         message: 'Stop the server by exiting the session (CTRL + C).',
         category: 'message',
