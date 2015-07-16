@@ -3,11 +3,13 @@
 /// <reference path='../../../../../typings/react/react.d.ts'/>
 /// <reference path='../../../../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../../../../typings/radium/radium.d.ts'/>
+/// <reference path='../../../../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 
 import { ComposerLayout, ComposerContent, ProvidedContentInfos, ContentInfo } from '../../../../../src/client/components';
 import { NavigationBar, Feed } from './Contents';
 import React = require('react');
 import Radium = require('radium');
+import PureRenderMixin = require('react-addons-pure-render-mixin');
 
 interface Contents extends ProvidedContentInfos {
     navigationBar: ContentInfo;
@@ -16,11 +18,12 @@ interface Contents extends ProvidedContentInfos {
 
 @Radium
 export class Layout extends ComposerLayout<Contents, {}> {
+    public mixins = [PureRenderMixin];
     public static className = 'TestLayout';
 
     public render() {
         return (
-            <div className='Layout' style={[layoutStyles.container]}>
+            <div className='Layout'>
                 <header className='TopBar'>
                     {this.props.navigationBar}
                 </header>

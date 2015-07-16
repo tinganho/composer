@@ -1,15 +1,19 @@
 
 /// <reference path='../../../../../typings/react/react.d.ts'/>
 /// <reference path='../../../../../typings/react/react-jsx.d.ts'/>
+/// <reference path='../../../../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 
 import { ComposerDocument, DocumentProps } from '../../../../../src/client/components';
 import React = require('react');
+import PureRenderMixin = require('react-addons-pure-render-mixin');
 
 interface Props extends DocumentProps {
     layout: string;
 }
 
 export class Document extends ComposerDocument<Props, {}> {
+    public mixins = [PureRenderMixin];
+    
     public render() {
         return (
             <html lang='en'>

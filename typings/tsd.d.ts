@@ -15,3 +15,4 @@
 /// <reference path="gulp/gulp.d.ts" />
 /// <reference path="gulp-rename/gulp-rename.d.ts" />
 /// <reference path="es6-promise/es6-promise.d.ts" />
+/// <reference path="react/react-addons.d.ts" />

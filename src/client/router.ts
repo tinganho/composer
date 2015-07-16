@@ -14,10 +14,12 @@ export function init(RoutingInfo: RoutingInfo[], Components: RoutingInfo): void 
         let routePattern = '^' + emitInfo.route
             .replace(/:(\w+)\//, (match, param) => `(${param})`)
             .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+
         let route: Route = {
             matcher: new RegExp(routePattern),
             path: emitInfo.route,
         }
+
         routes.push(route);
     }
 
@@ -55,5 +57,5 @@ function checkRouteAndRenderIfMatch(): void {
 }
 
 function renderComponents(emitInfo: RoutingInfo) {
-    // Components.Layout[emitInfo.layout.className];
+    alert('hej')
 }

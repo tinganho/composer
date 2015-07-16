@@ -2,7 +2,6 @@
   "name": "composer",
   "version": "1.0.0",
   "dependencies": {
-    "radium": "~0.13.4"
   },
   "devDependencies": {}
 }

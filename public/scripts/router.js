@@ -44,5 +44,5 @@ function checkRouteAndRenderIfMatch() {
     });
 }
 function renderComponents(emitInfo) {
-    // Components.Layout[emitInfo.layout.className];
+    alert('hej');
 }

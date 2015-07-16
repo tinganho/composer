@@ -1,5 +1,6 @@
 
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
+/// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 
 import { Component } from 'react';
 

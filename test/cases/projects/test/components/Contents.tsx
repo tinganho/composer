@@ -2,8 +2,10 @@
 /// <reference path='../../../../../typings/react/react.d.ts'/>
 /// <reference path='../../../../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../../../../typings/radium/radium.d.ts'/>
+/// <reference path='../../../../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 
 import { ComposerContent } from '../../../../../src/client/components';
+import PureRenderMixin = require('react-addons-pure-render-mixin');
 import React = require('react');
 import Radium = require('radium');
 
@@ -13,6 +15,7 @@ interface NavigationBarProps {
 }
 
 export class NavigationBar extends ComposerContent<NavigationBarProps, {}> {
+    public mixins = [PureRenderMixin];
 
     static fetch(): Promise<NavigationBarProps> {
         let promise = new Promise((resolve, reject) => {
@@ -35,6 +38,7 @@ interface FeedProps {
 }
 
 export class Feed extends ComposerContent<FeedProps, {}> {
+    public mixins = [PureRenderMixin];
 
     static fetch(): Promise<FeedProps> {
         let promise = new Promise((resolve, reject) => {

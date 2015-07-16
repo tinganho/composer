@@ -57,7 +57,8 @@ export default class HtmlRunner {
         }
         app.use(rewrite([
             '^\\/react.js /public/scripts/vendor/react.js [L]',
-            '^\\/radium.js /public/scripts/vendor/radium.js [L]'
+            '^\\/react-addons-pure-render-mixin.js /public/scripts/vendor/react-with-addons.js [L]',
+            '^\\/radium.js /public/scripts/vendor/radium.js [L]',
         ]));
         app.use('/src/client', express.static(path.join(this.root, 'built/src/client')));
         app.use('/public', express.static(path.join(this.root, 'public')));
@@ -110,6 +111,7 @@ export default class HtmlRunner {
             var fileName = jsFileName.replace(/\.js$/, '');
 
             (function(folderPath: string, fileName: string) {
+                let folderName = path.dirname(folderPath);
                 let projectFile = require(path.join(self.root, 'built', folderPath, 'config.js')) as ProjectFile;
 
                 describe('Web client tests:', () => {
@@ -125,7 +127,9 @@ export default class HtmlRunner {
                                 return self.stopServerDueToError(serverComposer, err, () => done());
                             }
 
-                            self.testWithHeadlessWebBrowser(app, serverComposer, fileName, projectFile, done);
+                            self.testWithHeadlessWebBrowser(app, serverComposer, fileName, projectFile, () =>{
+                                done();
+                            });
                         });
                     });
 
@@ -139,8 +143,8 @@ export default class HtmlRunner {
         }
     }
 
-    private testWithHeadlessWebBrowser(app: express.Express, serverComposer: ServerComposer, fileName: string, projectFile: ProjectFile, next: () => void) {
-        let filePath = path.join(this.root, `test/baselines/local/${fileName}`);
+    private testWithHeadlessWebBrowser(app: express.Express, serverComposer: ServerComposer, folderName: string, projectFile: ProjectFile, callback: () => void) {
+        let filePath = path.join(this.root, `test/baselines/local/${folderName}`);
         new HeadlessWebBrowser({ port: 7000 })
             .viewport(cf.TEST_PAGE_VIEW_PORT.WIDTH, cf.TEST_PAGE_VIEW_PORT.HEIGHT)
             .goto(`http://${cf.HOST}:${cf.PORT}${projectFile.route}`)
@@ -159,7 +163,7 @@ export default class HtmlRunner {
                     serverComposer.stop(err => {
                         app = undefined;
                         serverComposer = undefined;
-                        next();
+                        callback();
                     });
                 }
             });

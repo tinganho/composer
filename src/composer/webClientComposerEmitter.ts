@@ -201,7 +201,8 @@ export function emitComposer(
             write(`var ${i.className} = require('${i.importPath}');`);
             writeLine();
         }
-        write(`var ComposerRouter = require('${clientRouterPath}');`)
+        write(`var ComposerRouter = require('${clientRouterPath}');`);
+        writeLine();
     }
 
     function writeVariableList(vars: string[]): void {
