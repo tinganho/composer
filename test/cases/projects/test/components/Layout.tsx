@@ -4,31 +4,36 @@
 /// <reference path='../../../../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../../../../typings/radium/radium.d.ts'/>
 /// <reference path='../../../../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
+/// <reference path='../../../../../src/client/infos.d.ts' />
 
-import { ComposerLayout, ComposerContent, ProvidedContentInfos, ContentInfo } from '../../../../../src/client/components';
+let __r = require;
+import { ComposerLayout, ComposerContent } from '../../../../../src/client/components';
 import { NavigationBar, Feed } from './Contents';
-import React = require('react');
-import Radium = require('radium');
-import PureRenderMixin = require('react-addons-pure-render-mixin');
+import ReactType = require('react');
+let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __r('react');
+import RadiumType = require('radium');
+let Radium: typeof RadiumType = inClient ? (window as any).Radium : __r('radium');
+import PureRenderMixinType = require('react-addons-pure-render-mixin');
+let PureRenderMixin: typeof PureRenderMixinType = inClient ? require('/public/scripts/vendor/react-with-addons') : __r('react-addons-pure-render-mixin');
 
-interface Contents extends ProvidedContentInfos {
-    navigationBar: ContentInfo;
-    feed: ContentInfo;
+interface LayoutContents {
+    NavigationBar: JSX.Element;
+    Feed: JSX.Element;
 }
 
 @Radium
-export class Layout extends ComposerLayout<Contents, {}> {
+export class Layout extends ComposerLayout<LayoutContents, {}> {
     public mixins = [PureRenderMixin];
-    public static className = 'TestLayout';
+    public static className = 'Layout';
 
     public render() {
         return (
-            <div className='Layout'>
+            <div id='layout'>
                 <header className='TopBar'>
-                    {this.props.navigationBar}
+                    {this.props.NavigationBar}
                 </header>
                 <div className='Body'>
-                    {this.props.feed}
+                    {this.props.Feed}
                 </div>
             </div>
         );
@@ -48,7 +53,7 @@ var layoutStyles: StyleRules = {
     }
 }
 
-export var contents: Contents = {
-    navigationBar: { component: NavigationBar, importPath: 'test/cases/projects/test/components/Contents.js' },
-    feed: { component: Feed, importPath: 'test/cases/projects/test/components/Contents.js' },
+export var contentDeclarations: ProvidiedContentDeclarations = {
+    NavigationBar: { component: NavigationBar, importPath: 'test/cases/projects/test/components/Contents.js' },
+    Feed: { component: Feed, importPath: 'test/cases/projects/test/components/Contents.js' },
 }

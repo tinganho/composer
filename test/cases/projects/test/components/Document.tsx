@@ -1,11 +1,16 @@
 
 /// <reference path='../../../../../typings/react/react.d.ts'/>
 /// <reference path='../../../../../typings/react/react-jsx.d.ts'/>
+/// <reference path='../../../../../typings/platform/platform.d.ts'/>
+/// <reference path='../../../../../src/client/components.d.ts'/>
 /// <reference path='../../../../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 
-import { ComposerDocument, DocumentProps } from '../../../../../src/client/components';
-import React = require('react');
-import PureRenderMixin = require('react-addons-pure-render-mixin');
+let __r = require;
+import { ComposerDocument } from '../../../../../src/client/components';
+import ReactType = require('react');
+let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __r('react');
+import PureRenderMixinType = require('react-addons-pure-render-mixin');
+let PureRenderMixin: typeof PureRenderMixinType = inClient ? require('/public/scripts/vendor/react-with-addons.js') : __r('react-addons-pure-render-mixin');
 
 interface Props extends DocumentProps {
     layout: string;
@@ -13,22 +18,35 @@ interface Props extends DocumentProps {
 
 export class Document extends ComposerDocument<Props, {}> {
     public mixins = [PureRenderMixin];
-    
+
     public render() {
+        this.props
         return (
             <html lang='en'>
                 <head>
                     <link rel='stylesheet' href='/public/styles/styles.css'/>
+                    <script dangerouslySetInnerHTML={{ __html: 'window.inServer = false; window.inClient = true;' }}></script>
                     <script src="/public/scripts/vendor/system.js"></script>
                     <script src="/public/scripts/vendor/react.js"></script>
-                    <script src='/public/scripts/html.js'></script>
-                    <script src='/public/scripts/startup.js'></script>
+                    <script src="/public/scripts/vendor/radium.js"></script>
+                    <script src="/public/scripts/startup.js"></script>
+                    <script
+                        type='application/json'
+                        id='react-composer-document-json'
+                        key='react-composer-document-json'
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify(this.props) }}>
+                    </script>
                     {this.props.jsonScriptData.map(attr => {
-                        <script id={attr.id}>{attr.data}</script>
+                        return (
+                            <script
+                                type='application/json'
+                                id={attr.id} key={attr.id}
+                                dangerouslySetInnerHTML={{ __html: attr.data }}>
+                            </script>
+                        );
                     })}
                 </head>
-                <body>
-                    {this.props.layout}
+                <body dangerouslySetInnerHTML={{ __html: '{{layout}}'}}>
                 </body>
             </html>
         );

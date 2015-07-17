@@ -1,13 +1,13 @@
-var Document = require('test/cases/projects/test/components/Document.js');
-var TestLayout = require('test/cases/projects/test/components/Layout.js');
-var NavigationBar = require('test/cases/projects/test/components/Contents.js');
-var Feed = require('test/cases/projects/test/components/Contents.js');
-var ComposerRouter = require('public/scripts/router.js');
+var Document = require('test/cases/projects/test/components/Document.js').Document;
+var Layout = require('test/cases/projects/test/components/Layout.js').Layout;
+var NavigationBar = require('test/cases/projects/test/components/Contents.js').NavigationBar;
+var Feed = require('test/cases/projects/test/components/Contents.js').Feed;
+var Composer = require('public/scripts/composer.js');
 var App = {};
 window.App = App;
 App.Component = { Document: {}, Layout: {}, Content: {} };
 App.Component.Document.Document = Document;
-App.Component.Layout.TestLayout = TestLayout;
+App.Component.Layout.Layout = Layout;
 App.Component.Content.NavigationBar = NavigationBar;
 App.Component.Content.Feed = Feed;
 App.RoutingTable = [
@@ -18,7 +18,7 @@ App.RoutingTable = [
             importPath: 'test/cases/projects/test/components/Document.js'
         },
         layout: {
-            className: 'TestLayout',
+            className: 'Layout',
             importPath: 'test/cases/projects/test/components/Layout.js'
         },
         contents: [
@@ -33,4 +33,4 @@ App.RoutingTable = [
         ]
     }
 ];
-ComposerRouter.init(App.RoutingTable, App.Components);
+App.Router = new Composer.Router('App', App.RoutingTable, App.Component);

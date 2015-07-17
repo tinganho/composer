@@ -151,7 +151,7 @@ export function emitComposer(
     }
 
     function writeRouterInit() {
-        write(`ComposerRouter.init(${appName}.RoutingTable, ${appName}.Components);`);
+        write(`${appName}.Router = new Composer.Router('${appName}', ${appName}.RoutingTable, ${appName}.Component);`);
         writeLine();
     }
 
@@ -186,7 +186,7 @@ export function emitComposer(
             write(imports[i].className);
             write(', ');
         }
-        write('ComposerRouter');
+        write('Composer');
         write(') {');
         writeLine();
     }
@@ -198,10 +198,10 @@ export function emitComposer(
 
     function writeCommonJsImportList(): void {
         for (let i of imports) {
-            write(`var ${i.className} = require('${i.importPath}');`);
+            write(`var ${i.className} = require('${i.importPath}').${i.className};`);
             writeLine();
         }
-        write(`var ComposerRouter = require('${clientRouterPath}');`);
+        write(`var Composer = require('${clientRouterPath}');`);
         writeLine();
     }
 

@@ -3,11 +3,16 @@
 /// <reference path='../../typings/express/express.d.ts'/>
 /// <reference path='../../typings/react/react.d.ts'/>
 /// <reference path='../../typings/react/react-jsx.d.ts'/>
+/// <reference path='../../typings/react/react-dom.d.ts'/>
 /// <reference path='../../typings/glob/glob.d.ts'/>
 /// <reference path='../../node_modules/typescript/bin/typescript.d.ts'/>
 /// <reference path='../client/router.d.ts'/>
+/// <reference path='../client/infos.d.ts'/>
+/// <reference path='../client/components.d.ts'/>
 
-import { renderToString, Component, createElement, MouseEvent } from 'react';
+
+import { Component, createElement, MouseEvent } from 'react';
+import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { Express, Request, Response } from 'express';
 import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
 import { Debug, createTextWriter, printError } from '../core';
@@ -22,14 +27,7 @@ import {
     ComposerLayout,
     ComposerDocument,
     ComposerContent,
-    ComposerComponent,
-    DocumentProps,
-    Info,
-    ProvidedContentInfos,
-    StoredContentInfos,
-    LayoutInfo,
-    DocumentInfo,
-    JsonScriptAttributes
+    ComposerComponent
 } from '../client/components';
 
 export interface Pages {
@@ -53,10 +51,6 @@ export class Link extends Component<LinkProps, {}> {
             <a href={this.props.to} onClick={this.navigatTo}></a>
         );
     }
-}
-
-export interface Contents {
-    [index: string]: JSX.Element;
 }
 
 export interface PlatformDetect {
@@ -83,7 +77,7 @@ interface ComposerOptions {
     /**
      * Define the output file for client router.
      */
-    clientRouterOutput: string,
+    clientComposerOutput: string,
 
     /**
      * Path to client configuration path.
@@ -213,7 +207,7 @@ export class ServerComposer {
             this.commandLineOptions = commandLineOptions;
         }
         this.options = options;
-        this.options.clientRouterOutput = this.options.clientRouterOutput;
+        this.options.clientComposerOutput = this.options.clientComposerOutput;
         this.options.bindingsOutput =this.options.bindingsOutput;
     }
 
@@ -254,7 +248,7 @@ export class ServerComposer {
             let writer = createTextWriter(cf.DEFAULT_NEW_LINE);
             emitComposer(
                 this.options.appName,
-                this.options.clientRouterOutput,
+                this.options.clientComposerOutput,
                 this.getAllImportPaths(this.pageEmitInfos),
                 this.pageEmitInfos,
                 writer,
@@ -283,7 +277,7 @@ export class ServerComposer {
         let routerSource = sys.readFile(path.join(__dirname, '../client/router.ts').replace('/built', ''));
         let moduleKind = this.moduleKindToTsModuleKind(this.options.moduleKind);
         let jsSource = ts.transpile(routerSource, { module: moduleKind });
-        sys.writeFile(path.join(this.options.rootPath, this.options.clientRouterOutput), jsSource)
+        sys.writeFile(path.join(this.options.rootPath, this.options.clientComposerOutput), jsSource)
     }
 
     private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentEmitInfo[] {
@@ -318,7 +312,7 @@ interface Platform {
     document?: DocumentInfo;
     documentProps?: DocumentProps;
     layout?: LayoutInfo;
-    contents?: StoredContentInfos;
+    contents?: StoredContentDeclarations;
     detect(req: Request): boolean;
 }
 
@@ -393,7 +387,7 @@ export class Page {
     /**
      * Define which layout this page should have.
      */
-    public hasLayout<C extends ProvidedContentInfos>(layout: LayoutInfo | typeof ComposerLayout, contents: C): Page {
+    public hasLayout<C extends ProvidiedContentDeclarations>(layout: LayoutInfo | typeof ComposerLayout, providiedContentDeclarations: C): Page {
         if (this.isInfo(layout)) {
             this.currentPlatform.layout = layout;
         }
@@ -407,10 +401,10 @@ export class Page {
             }
         }
 
-        let newContents: StoredContentInfos = {};
-        for (let region in contents) {
+        let newContents: StoredContentDeclarations = {};
+        for (let region in providiedContentDeclarations) {
             let newContent = {};
-            let content = contents[region];
+            let content = providiedContentDeclarations[region];
             if (this.isInfo(content)) {
                 newContents[region] = content;
             }
@@ -484,10 +478,11 @@ export class Page {
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
         this.getContents(req, res, (contents, jsonScriptData) => {
-            this.currentPlatform.documentProps.layout = createElement(this.currentPlatform.layout.component, contents);
             this.currentPlatform.documentProps.jsonScriptData = jsonScriptData;
-            let html = renderToString(createElement(this.currentPlatform.document.component, this.currentPlatform.documentProps));
-            res.send(html);
+            let layoutHtml = renderToString(createElement(this.currentPlatform.layout.component, contents));
+            let documentHtml = renderToStaticMarkup(createElement(this.currentPlatform.document.component, this.currentPlatform.documentProps));
+            documentHtml = documentHtml.replace('{{layout}}', layoutHtml);
+            res.send(documentHtml);
         });
     }
 
@@ -498,13 +493,13 @@ export class Page {
         let numberOfContents = 0;
         let finishedContentFetchings = 0;
 
-        for (let region in contents) {
+        for (let content in contents) {
             numberOfContents++;
-            (function(region: string, ContentComponent: typeof ComposerContent) {
+            (function(content: string, ContentComponent: typeof ComposerContent) {
                 ContentComponent.fetch().then(result => {
-                    resultContents[region] = createElement(ContentComponent, result);
+                    resultContents[content] = createElement(ContentComponent, result);
                     resultJsonScriptData.push({
-                        id: `react-composer-json-${region}`,
+                        id: `react-composer-content-json-${content.toLowerCase()}`,
                         data: JSON.stringify(result)
                     });
 
@@ -516,7 +511,7 @@ export class Page {
                 }).catch(reason => {
                     console.log(reason)
                 });
-            })(region, contents[region].component);
+            })(content, contents[content].component);
         }
     }
 }

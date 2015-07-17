@@ -1,23 +1,13 @@
 
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 /// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
+/// <reference path='./components.d.ts'/>
 
-import { Component } from 'react';
+let __require = require;
+import ReactType = require('react');
+let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __require('react');
 
-export interface JsonScriptAttributes {
-    id: string;
-    data: string;
-}
-
-export interface DocumentProps {
-    confs?: string[];
-    title?: string;
-    styles?: string[];
-    jsonScriptData?: JsonScriptAttributes[];
-    layout?: any;
-}
-
-export abstract class ComposerComponent<P, S> extends Component<P, S> {
+export abstract class ComposerComponent<P, S> extends React.Component<P, S> {
     /**
      * This static property is a native readonly JS property and it is automatically set to the
      * constructor's name.
@@ -45,7 +35,7 @@ export class ComposerContent<Props, States> extends ComposerComponent<Props, Sta
 
 export interface Info {
     importPath: string;
-    component: typeof Component;
+    component: typeof React.Component;
 }
 
 export interface DocumentInfo extends Info {

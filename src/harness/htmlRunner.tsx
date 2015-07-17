@@ -14,7 +14,7 @@ import logger = require('morgan');
 import { cf } from '../../conf/conf';
 import { ServerComposer } from '../composer/serverComposer';
 import { ModuleKind } from '../composer/webClientComposerEmitter';
-import { DocumentProps, ComposerDocument } from '../client/components';
+import { ComposerDocument } from '../client/components';
 import React = require('react');
 import {sync as glob} from 'glob';
 import * as path from 'path';
@@ -27,6 +27,9 @@ import { sys } from '../sys';
 import { Diagnostics } from '../diagnostics.generated';
 import rewrite = require('connect-modrewrite');
 import { expect } from 'chai';
+
+(global as any).inServer = true;
+(global as any).inClient = false;
 
 declare function require(path: string): any;
 require('source-map-support').install();
@@ -56,9 +59,6 @@ export default class HtmlRunner {
             Debug.fail(Diagnostics.Could_not_get_folder_name_from_0, folderPath);
         }
         app.use(rewrite([
-            '^\\/react.js /public/scripts/vendor/react.js [L]',
-            '^\\/react-addons-pure-render-mixin.js /public/scripts/vendor/react-with-addons.js [L]',
-            '^\\/radium.js /public/scripts/vendor/radium.js [L]',
         ]));
         app.use('/src/client', express.static(path.join(this.root, 'built/src/client')));
         app.use('/public', express.static(path.join(this.root, 'public')));
@@ -67,7 +67,7 @@ export default class HtmlRunner {
 
         let serverComposer = new ServerComposer({
             app,
-            clientRouterOutput: 'public/scripts/router.js',
+            clientComposerOutput: 'public/scripts/composer.js',
             bindingsOutput: 'public/scripts/bindings.js',
             clientConfigurationPath: './client/*.js',
             rootPath: this.root,
@@ -81,7 +81,7 @@ export default class HtmlRunner {
             [projectFile.route]: page => {
                 page.onPlatform({ name: 'all', detect: (req: express.Request) => true })
                     .hasDocument({ component: documentFile.Document, importPath: path.join(componentFolderPath, 'Document.js') }, documentFile.defaultConfigs)
-                    .hasLayout({ component: layoutFile.Layout, importPath: path.join(componentFolderPath, 'Layout.js') }, layoutFile.contents)
+                    .hasLayout({ component: layoutFile.Layout, importPath: path.join(componentFolderPath, 'Layout.js') }, layoutFile.contentDeclarations)
                     .end();
             }
         });
