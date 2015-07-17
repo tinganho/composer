@@ -406,7 +406,7 @@ declare module Radium {
         [stylDeclaration: string]: string | CSSStyleDeclaration;
     }
 
-    export interface StyleRules {
+    export interface StyleClass {
         [rule: string]: CSSStyleDeclaration
     }
 }

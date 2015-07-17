@@ -34,25 +34,6 @@ export interface Pages {
     [page: string]: (page: Page) => void;
 }
 
-interface LinkProps {
-    to: string;
-}
-
-export class Link extends Component<LinkProps, {}> {
-
-    public navigatTo(event: React.MouseEvent) {
-        event.preventDefault();
-
-        ComposerRouter.navigateTo(this.props.to);
-    }
-
-    public render() {
-        return (
-            <a href={this.props.to} onClick={this.navigatTo}></a>
-        );
-    }
-}
-
 export interface PlatformDetect {
     name: string;
 
@@ -309,9 +290,9 @@ export class ServerComposer {
 interface Platform {
     imports: string[];
     importNames: string[];
-    document?: DocumentInfo;
+    document?: DocumentDeclaration;
     documentProps?: DocumentProps;
-    layout?: LayoutInfo;
+    layout?: LayoutDeclaration;
     contents?: StoredContentDeclarations;
     detect(req: Request): boolean;
 }
@@ -361,7 +342,7 @@ export class Page {
     /**
      * Define which document this page should have along with document properties.
      */
-    public hasDocument<T extends DocumentProps>(document: DocumentInfo | typeof ComposerDocument, documentProps: T): Page {
+    public hasDocument<T extends DocumentProps>(document: DocumentDeclaration | typeof ComposerDocument, documentProps: T): Page {
         if (!this.currentPlatform) {
             Debug.fail(Diagnostics.You_must_define_a_platform_with_onPlatform_method_before_you_call_hasDocument);
         }
@@ -387,7 +368,7 @@ export class Page {
     /**
      * Define which layout this page should have.
      */
-    public hasLayout<C extends ProvidiedContentDeclarations>(layout: LayoutInfo | typeof ComposerLayout, providiedContentDeclarations: C): Page {
+    public hasLayout<C extends ProvidiedContentDeclarations>(layout: LayoutDeclaration | typeof ComposerLayout, providiedContentDeclarations: C): Page {
         if (this.isInfo(layout)) {
             this.currentPlatform.layout = layout;
         }
@@ -435,7 +416,7 @@ export class Page {
         }
     }
 
-    private isInfo<T extends Info, U extends typeof ComposerComponent>(info: T | U): info is T {
+    private isInfo<T extends PageLayerDeclaration, U extends typeof ComposerComponent>(info: T | U): info is T {
         if ((info as T).importPath) {
             return true;
         }
@@ -443,7 +424,7 @@ export class Page {
     }
 
     private getClassName(c: typeof ComposerComponent): string {
-        return c.className ? c.className : c.name;
+        return c.name === 'RadiumEnhancer' ? (c as any).__proto__.name : c.name;
     }
 
     private registerPage(): void {

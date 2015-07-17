@@ -40,22 +40,26 @@ var Router = (function () {
         var _this = this;
         this.routes.some(function (route) {
             if (route.matcher.test(document.location.pathname)) {
-                _this.renderComponents(_this.routingInfoIndex[route.path]);
+                _this.renderPage(_this.routingInfoIndex[route.path]);
                 return true;
             }
             return false;
         });
     };
-    Router.prototype.renderComponents = function (page) {
+    Router.prototype.renderPage = function (page) {
         if (this.inInitialPageLoad) {
-            var documentProps = JSON.parse(document.getElementById('react-composer-document-json').innerText);
             var contents = {};
             for (var _i = 0, _a = page.contents; _i < _a.length; _i++) {
                 var content = _a[_i];
-                contents[content.className] = React.createElement(window[this.appName].Component.Content[content.className], JSON.parse(document.getElementById("react-composer-content-json-" + content.className.toLowerCase()).innerText));
+                var jsonElement = document.getElementById("react-composer-content-json-" + content.className.toLowerCase());
+                if (!jsonElement) {
+                    console.error("\nCould not find JSON file " + content.className + ". Are you sure\nthis component is properly named?");
+                }
+                contents[content.className] = React.createElement(window[this.appName].Component.Content[content.className], JSON.parse(jsonElement.innerText));
+                jsonElement.remove();
             }
-            documentProps.layout = React.createElement(this.pageComponents.Layout[page.layout.className], contents);
-            React.render(documentProps.layout, document.body);
+            var layoutElement = React.createElement(this.pageComponents.Layout[page.layout.className], contents);
+            React.render(layoutElement, document.body);
         }
         else {
         }

@@ -16,7 +16,7 @@ import { ServerComposer } from '../composer/serverComposer';
 import { ModuleKind } from '../composer/webClientComposerEmitter';
 import { ComposerDocument } from '../client/components';
 import React = require('react');
-import {sync as glob} from 'glob';
+import { sync as glob } from 'glob';
 import * as path from 'path';
 import express = require('express');
 import { createServer } from 'http';
@@ -74,17 +74,8 @@ export default class HtmlRunner {
             moduleKind: ModuleKind.CommonJs,
         }, this.options);
 
-        let documentFile = require(path.join(this.root, 'built', folderPath, 'components/Document.js'));
-        let layoutFile = require(path.join(this.root, 'built', folderPath, 'components/Layout.js'));
-
-        serverComposer.setPages({
-            [projectFile.route]: page => {
-                page.onPlatform({ name: 'all', detect: (req: express.Request) => true })
-                    .hasDocument({ component: documentFile.Document, importPath: path.join(componentFolderPath, 'Document.js') }, documentFile.defaultConfigs)
-                    .hasLayout({ component: layoutFile.Layout, importPath: path.join(componentFolderPath, 'Layout.js') }, layoutFile.contentDeclarations)
-                    .end();
-            }
-        });
+        let pages = require(path.join(this.root, 'built', folderPath, 'pages.js'));
+        serverComposer.setPages(pages(componentFolderPath));
 
         return serverComposer;
     }
@@ -98,10 +89,10 @@ export default class HtmlRunner {
         let self = this;
         let pattern: string;
         if (this.options.tests) {
-            `test/cases/**/*${this.options.tests}*.json`
+            pattern = `test/cases/*${this.options.tests}*/pages.js`;
         }
         else {
-            pattern = 'test/cases/projects/**/config.js';
+            pattern = 'test/cases/projects/*/pages.js';
         }
         let filePaths = glob(pattern, { cwd: this.builtFolder });
 

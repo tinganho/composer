@@ -8,7 +8,7 @@
 let __r = require;
 import { ComposerContent } from '../../../../../src/client/components';
 import ReactType = require('react');
-let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __r('react');
+let React: typeof ReactType = inClient ? (window as any).React : __r('react');
 import PureRenderMixinType = require('react-addons-pure-render-mixin');
 let PureRenderMixin: typeof PureRenderMixinType = inClient ? require('/public/scripts/vendor/react-with-addons.js') : __r('react-addons-pure-render-mixin');
 import RadiumType = require('radium');
@@ -41,17 +41,97 @@ export class NavigationBar extends ComposerContent<NavigationBarProps, {}> {
     }
 }
 
-interface FeedProps {
-    a: string;
-    b: string;
+interface TodoItemProps {
+    key?: number;
+    id?: number;
+    title: string;
+    description: string;
 }
 
-export class Feed extends ComposerContent<FeedProps, {}> {
+interface ITodoItemStyleClass extends Radium.StyleClass {
+    Container: Radium.CSSStyleDeclaration;
+    Title: Radium.CSSStyleDeclaration;
+    Description: Radium.CSSStyleDeclaration;
+}
+
+const TodoItemStyleClass: ITodoItemStyleClass = {
+    Container: {
+        backgroundColor: '#333',
+        listStyle: 'none',
+        padding: '20px',
+        marginBottom: '20px',
+        cursor: 'pointer',
+    },
+    Title: {
+        color: '#fff',
+        fontFamily: 'Helvetica Neue',
+        fontSize: '12px',
+    },
+    Description: {
+        color: '#fff',
+        fontFamily: 'Helvetica Neue',
+    },
+}
+
+@Radium
+class TodoListItem extends ComposerContent<TodoItemProps, {}> {
     public mixins = [PureRenderMixin];
 
-    static fetch(): Promise<FeedProps> {
+    public showAlert() {
+    }
+    public render() {
+        return (
+            <li style={[TodoItemStyleClass.Container]} onClick={this.showAlert}>
+                <h1 style={[TodoItemStyleClass.Title]}>{this.props.title}</h1>
+                <p style={[TodoItemStyleClass.Description]}>{this.props.description}</p>
+            </li>
+        );
+    }
+}
+
+interface TodoListProps {
+    list: TodoItemProps[];
+}
+
+interface ITodoListStyleClass extends Radium.StyleClass {
+    List: Radium.CSSStyleDeclaration;
+}
+
+const TodoListStyleClass: ITodoListStyleClass = {
+    List: {
+        width: '400px',
+        margin: '0 auto',
+    }
+}
+
+@Radium
+export class TodoList extends ComposerContent<TodoListProps, {}> {
+    public mixins = [PureRenderMixin];
+
+    static fetch(): Promise<TodoListProps> {
         let promise = new Promise((resolve, reject) => {
-            resolve({a: 'a', b: 'b'})
+            resolve({ list: [
+                {
+                    id: 1,
+                    title: 'Donec id elit non mi porta gravida at eget metus.',
+                    description: 'Cras justo odio, dapibus ac facilisis in, egestas eget quam.',
+                },
+                {
+                    id: 2,
+                    title: 'Sed posuere consectetur est at lobortis.',
+                    description: 'Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.',
+                },
+                {
+                    id: 3,
+                    title: 'Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.',
+                    description: 'Maecenas sed diam eget risus varius blandit sit amet non magna.',
+                },
+                {
+                    id: 4,
+                    title: 'Etiam porta sem malesuada magna mollis euismod.',
+                    description: 'Maecenas faucibus mollis interdum.',
+                }
+            ]});
         });
 
         return promise;
@@ -59,7 +139,23 @@ export class Feed extends ComposerContent<FeedProps, {}> {
 
     public render() {
         return (
-            <div className='Feed'>{this.props.a + this.props.b}</div>
+            <div className='TodoList'>
+                <ul style={[TodoListStyleClass.List]}>
+                    {this.props.list.map(todo =>{
+                        return <TodoListItem key={todo.id} title={todo.title} description={todo.description}/>
+                    })}
+                </ul>
+            </div>
         );
     }
+}
+
+@Radium
+export class TodoItem extends ComposerContent<{}, {}> {
+   public render () {
+       return (
+           <div className='ajhue'>
+           </div>
+       );
+   }
 }

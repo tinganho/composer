@@ -1,4 +1,6 @@
 
+/// <reference path='../../typings/react/react.d.ts'/>
+/// <reference path='../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 /// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 /// <reference path='./components.d.ts'/>
@@ -8,6 +10,7 @@ import ReactType = require('react');
 let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __require('react');
 
 export abstract class ComposerComponent<P, S> extends React.Component<P, S> {
+
     /**
      * This static property is a native readonly JS property and it is automatically set to the
      * constructor's name.
@@ -33,27 +36,21 @@ export class ComposerContent<Props, States> extends ComposerComponent<Props, Sta
     }
 }
 
-export interface Info {
-    importPath: string;
-    component: typeof React.Component;
+interface LinkProps {
+    to: string;
 }
 
-export interface DocumentInfo extends Info {
-    component: typeof ComposerDocument;
-}
+export class Link extends React.Component<LinkProps, {}> {
 
-export interface LayoutInfo extends Info {
-    component: typeof ComposerLayout;
-}
+    public navigateTo(event: React.MouseEvent) {
+        event.preventDefault();
 
-export interface ContentInfo extends Info {
-    component: typeof ComposerContent;
-}
+        ComposerRouter.navigateTo(this.props.to);
+    }
 
-export interface StoredContentInfos {
-    [index: string]: ContentInfo;
-}
-
-export interface ProvidedContentInfos {
-    [index: string]: ContentInfo | typeof ComposerContent;
+    public render() {
+        return (
+            <a onClick={this.navigateTo}></a>
+        );
+    }
 }

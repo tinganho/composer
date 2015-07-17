@@ -1,5 +1,6 @@
 
 /// <reference path='../../typings/react/react.d.ts' />
+/// <reference path='../../typings/es6-promise/es6-promise.d.ts' />
 
 declare interface JsonScriptAttributes {
     id: string;
@@ -29,8 +30,8 @@ declare abstract class ComposerComponent<P, S> extends React.Component<P, S> {
 }
 
 declare class ComposerDocument<Props extends DocumentProps, States> extends ComposerComponent<Props, States> {}
-declare class ComposerLayout<Props extends DocumentProps, States> extends ComposerComponent<Props, States> {}
-declare class ComposerContent<Props extends DocumentProps, States> extends ComposerComponent<Props, States> {
+declare class ComposerLayout<Props, States> extends ComposerComponent<Props, States> {}
+declare class ComposerContent<Props, States> extends ComposerComponent<Props, States> {
     static fetch(): Promise<any>;
 }
 

@@ -8,9 +8,9 @@
 
 let __r = require;
 import { ComposerLayout, ComposerContent } from '../../../../../src/client/components';
-import { NavigationBar, Feed } from './Contents';
+import { NavigationBar, TodoList } from './Contents';
 import ReactType = require('react');
-let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __r('react');
+let React: typeof ReactType = inClient ? (window as any).React : __r('react');
 import RadiumType = require('radium');
 let Radium: typeof RadiumType = inClient ? (window as any).Radium : __r('radium');
 import PureRenderMixinType = require('react-addons-pure-render-mixin');
@@ -18,13 +18,14 @@ let PureRenderMixin: typeof PureRenderMixinType = inClient ? require('/public/sc
 
 interface LayoutContents {
     NavigationBar: JSX.Element;
-    Feed: JSX.Element;
+    TodoList: JSX.Element;
 }
 
 @Radium
 export class Layout extends ComposerLayout<LayoutContents, {}> {
-    public mixins = [PureRenderMixin];
     public static className = 'Layout';
+
+    public mixins = [PureRenderMixin];
 
     public render() {
         return (
@@ -33,14 +34,14 @@ export class Layout extends ComposerLayout<LayoutContents, {}> {
                     {this.props.NavigationBar}
                 </header>
                 <div className='Body'>
-                    {this.props.Feed}
+                    {this.props.TodoList}
                 </div>
             </div>
         );
     }
 }
 
-interface StyleRules extends Radium.StyleRules {
+interface StyleRules extends Radium.StyleClass {
     container: Radium.CSSStyleDeclaration;
 }
 
@@ -51,9 +52,4 @@ var layoutStyles: StyleRules = {
             background: '#444'
         }
     }
-}
-
-export var contentDeclarations: ProvidiedContentDeclarations = {
-    NavigationBar: { component: NavigationBar, importPath: 'test/cases/projects/test/components/Contents.js' },
-    Feed: { component: Feed, importPath: 'test/cases/projects/test/components/Contents.js' },
 }

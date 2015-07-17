@@ -54,32 +54,50 @@ export class Router {
     private checkRouteAndRenderIfMatch(): void {
         this.routes.some(route => {
             if (route.matcher.test(document.location.pathname)) {
-                this.renderComponents(this.routingInfoIndex[route.path]);
+                this.renderPage(this.routingInfoIndex[route.path]);
                 return true;
             }
             return false;
         });
     }
 
-    private renderComponents(page: Page) {
-        if (this.inInitialPageLoad) {
-            let documentProps = JSON.parse(document.getElementById('react-composer-document-json').innerText);
-            let contents: Contents = {};
-            for (let content of page.contents) {
-                contents[content.className] = React.createElement(
-                    (window as any)[this.appName].Component.Content[content.className],
-                    JSON.parse(document.getElementById(`react-composer-content-json-${content.className.toLowerCase()}`).innerText)
-                );
+    private setContentJsonScripts(contents: Contents, page: Page): Contents {
+        for (let content of page.contents) {
+            let jsonElement = document.getElementById(`react-composer-content-json-${content.className.toLowerCase()}`);
+            if (!jsonElement) {
+                console.error(`
+Could not find JSON file ${content.className}. Are you sure
+this component is properly named?`)
             }
-            documentProps.layout = React.createElement(this.pageComponents.Layout[page.layout.className], contents);
-            React.render(
-                documentProps.layout,
-                document.body
+            contents[content.className] = React.createElement(
+                (window as any)[this.appName].Component.Content[content.className],
+                JSON.parse(jsonElement.innerText)
             );
+            if (jsonElement.remove) {
+                jsonElement.remove();
+            }
+            else {
+                jsonElement.parentElement.removeChild(jsonElement);
+            }
+        }
+
+        return contents;
+    }
+
+    private renderPage(page: Page): void {
+        let contents: Contents = {};
+        if (this.inInitialPageLoad) {
+            this.setContentJsonScripts(contents, page);
         }
         else {
 
         }
+
+        let layoutElement = React.createElement(this.pageComponents.Layout[page.layout.className], contents);
+        React.render(
+            layoutElement,
+            document.body
+        );
         this.inInitialPageLoad = false;
     }
 }

@@ -8,7 +8,7 @@
 let __r = require;
 import { ComposerDocument } from '../../../../../src/client/components';
 import ReactType = require('react');
-let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __r('react');
+let React: typeof ReactType = inClient ? (window as any).React : __r('react');
 import PureRenderMixinType = require('react-addons-pure-render-mixin');
 let PureRenderMixin: typeof PureRenderMixinType = inClient ? require('/public/scripts/vendor/react-with-addons.js') : __r('react-addons-pure-render-mixin');
 
@@ -30,12 +30,6 @@ export class Document extends ComposerDocument<Props, {}> {
                     <script src="/public/scripts/vendor/react.js"></script>
                     <script src="/public/scripts/vendor/radium.js"></script>
                     <script src="/public/scripts/startup.js"></script>
-                    <script
-                        type='application/json'
-                        id='react-composer-document-json'
-                        key='react-composer-document-json'
-                        dangerouslySetInnerHTML={{ __html: JSON.stringify(this.props) }}>
-                    </script>
                     {this.props.jsonScriptData.map(attr => {
                         return (
                             <script
