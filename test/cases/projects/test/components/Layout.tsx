@@ -16,13 +16,13 @@ let Radium: typeof RadiumType = inClient ? (window as any).Radium : __r('radium'
 import PureRenderMixinType = require('react-addons-pure-render-mixin');
 let PureRenderMixin: typeof PureRenderMixinType = inClient ? require('/public/scripts/vendor/react-with-addons') : __r('react-addons-pure-render-mixin');
 
-interface LayoutContents {
-    NavigationBar: JSX.Element;
-    TodoList: JSX.Element;
+interface Regions {
+    TopBar: JSX.Element;
+    Body: JSX.Element;
 }
 
 @Radium
-export class Layout extends ComposerLayout<LayoutContents, {}> {
+export class Layout extends ComposerLayout<Regions, {}> {
     public static className = 'Layout';
 
     public mixins = [PureRenderMixin];
@@ -31,18 +31,18 @@ export class Layout extends ComposerLayout<LayoutContents, {}> {
         return (
             <div id='layout'>
                 <header className='TopBar'>
-                    {this.props.NavigationBar}
+                    {this.props.TopBar}
                 </header>
                 <div className='Body'>
-                    {this.props.TodoList}
+                    {this.props.Body}
                 </div>
             </div>
         );
     }
 }
 
-interface StyleRules extends Radium.StyleClass {
-    container: Radium.CSSStyleDeclaration;
+interface StyleRules extends Radium.Style {
+    container: Radium.StyleDeclaration;
 }
 
 var layoutStyles: StyleRules = {

@@ -5,9 +5,11 @@
 /// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 /// <reference path='./components.d.ts'/>
 
-let __require = require;
+let __r = require;
 import ReactType = require('react');
-let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __require('react');
+let React: typeof ReactType = inClient ? require('public/scripts/vendor/react') : __r('react');
+import RadiumType = require('radium');
+let Radium: typeof RadiumType = inClient ? (window as any).Radium : __r('radium');
 
 export abstract class ComposerComponent<P, S> extends React.Component<P, S> {
 
@@ -29,6 +31,7 @@ export class ComposerDocument<Props extends DocumentProps, States> extends Compo
 export class ComposerLayout<Props, States> extends ComposerComponent<Props, States> {}
 
 export class ComposerContent<Props, States> extends ComposerComponent<Props, States> {
+
     static fetch(): Promise<any> {
         return new Promise((resolve, reject) => {
            resolve();
@@ -38,8 +41,11 @@ export class ComposerContent<Props, States> extends ComposerComponent<Props, Sta
 
 interface LinkProps {
     to: string;
+    style?: Object;
+    children?: any;
 }
 
+@Radium
 export class Link extends React.Component<LinkProps, {}> {
 
     public navigateTo(event: React.MouseEvent) {
@@ -50,7 +56,7 @@ export class Link extends React.Component<LinkProps, {}> {
 
     public render() {
         return (
-            <a onClick={this.navigateTo}></a>
+            <a onClick={this.navigateTo.bind(this)} style={this.props.style}>{this.props.children}</a>
         );
     }
 }

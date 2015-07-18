@@ -1,6 +1,8 @@
 
 /// <reference path='./router.d.ts'/>
 /// <reference path='./components.d.ts'/>
+/// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
+
 
 interface Map {
    [entity: string]: string;
@@ -16,12 +18,13 @@ export class Router {
     public hasPushState = window.history && !!window.history.pushState;
     public routingInfoIndex: { [index: string]: Page } = {};
     public routes: Route[] = [];
+    public onPushState: (route: string) => void;
 
     constructor(public appName: string, pages: Page[], public pageComponents: PageComponents) {
         for (let page of pages) {
             let routePattern = '^' + page.route
                 .replace(/:(\w+)\//, (match, param) => `(${param})`)
-                .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+                .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + '$';
 
             let route: Route = {
                 matcher: new RegExp(routePattern),
@@ -36,7 +39,10 @@ export class Router {
         this.checkRouteAndRenderIfMatch();
 
         if(this.hasPushState) {
-            window.onpopstate = (event: PopStateEvent) => {
+            window.onpopstate = () => {
+                this.checkRouteAndRenderIfMatch();
+            }
+            this.onPushState = route => {
                 this.checkRouteAndRenderIfMatch();
             }
         }
@@ -49,6 +55,7 @@ export class Router {
         else {
             window.location.pathname = route;
         }
+        this.onPushState(route);
     }
 
     private checkRouteAndRenderIfMatch(): void {
@@ -61,18 +68,23 @@ export class Router {
         });
     }
 
-    private setContentJsonScripts(contents: Contents, page: Page): Contents {
+    private loadContentFromJsonScripts(placeholderContents: Contents, page: Page): void {
         for (let content of page.contents) {
             let jsonElement = document.getElementById(`react-composer-content-json-${content.className.toLowerCase()}`);
             if (!jsonElement) {
-                console.error(`
-Could not find JSON file ${content.className}. Are you sure
+                console.error(
+`Could not find JSON file ${content.className}. Are you sure
 this component is properly named?`)
             }
-            contents[content.className] = React.createElement(
-                (window as any)[this.appName].Component.Content[content.className],
-                JSON.parse(jsonElement.innerText)
-            );
+            try {
+                placeholderContents[content.region] = React.createElement(
+                    (window as any)[this.appName].Component.Content[content.className],
+                    jsonElement.innerText !== '' ? JSON.parse(jsonElement.innerText) : {}
+                );
+            }
+            catch(err) {
+                console.error(`Could not parse JSON for ${content.className}.`)
+            }
             if (jsonElement.remove) {
                 jsonElement.remove();
             }
@@ -80,24 +92,70 @@ this component is properly named?`)
                 jsonElement.parentElement.removeChild(jsonElement);
             }
         }
-
-        return contents;
     }
 
-    private renderPage(page: Page): void {
-        let contents: Contents = {};
-        if (this.inInitialPageLoad) {
-            this.setContentJsonScripts(contents, page);
-        }
-        else {
+    private loadContentsFromNetwork(placeholderContents: Contents, page: Page): Promise<void> {
+        let promise = new Promise<void>((resolve, reject) => {
+            let networkRequests = 0;
+            for (var content of page.contents) {
+                ((content: ContentComponentInfo) => {
+                    let component = (window as any)[this.appName].Component.Content[content.className];
+                    if (typeof component.fetch !== 'function') {
+                        console.error(`You have not implemented a static fetch function on your component ${content.className}`);
+                    }
+                    else {
+                        component.fetch()
+                            .then((result: any) => {
+                                try {
+                                    placeholderContents[content.region] = React.createElement(
+                                        (window as any)[this.appName].Component.Content[content.className],
+                                        result
+                                    );
+                                }
+                                catch(err) {
+                                    console.error(`Could not parse JSON for ${content.className}.`)
+                                }
+                            })
+                            .catch(reject)
+                            .finally(() => {
+                                networkRequests++;
+                                if (networkRequests === page.contents.length) {
+                                    resolve();
+                                }
+                            });
+                    }
+                })(content);
+            }
+        });
 
-        }
 
+        return promise;
+    }
+
+    private renderLayoutAndContents(page: Page, contents: Contents) {
         let layoutElement = React.createElement(this.pageComponents.Layout[page.layout.className], contents);
         React.render(
             layoutElement,
             document.body
         );
+    }
+
+    private renderPage(page: Page): void {
+        let contents: Contents = {};
+        if (this.inInitialPageLoad) {
+            this.loadContentFromJsonScripts(contents, page);
+            this.renderLayoutAndContents(page, contents);
+        }
+        else {
+            this.loadContentsFromNetwork(contents, page)
+                .then(() => {
+                     this.renderLayoutAndContents(page, contents);
+                })
+                .catch((err: Error) => {
+                    console.warn('Could not load contents from network.')
+                });
+        }
+
         this.inInitialPageLoad = false;
     }
 }

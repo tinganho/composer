@@ -4,7 +4,7 @@
 declare module Radium {
     export function getState<StateType>(state: StateType, elementKey: string, value: string): boolean;
 
-    export interface CSSStyleDeclaration {
+    export interface StyleDeclaration {
         alignmentBaseline?: string;
         background?: string;
         backgroundAttachment?: string;
@@ -403,11 +403,11 @@ declare module Radium {
         zIndex?: string;
         zoom?: string;
 
-        [stylDeclaration: string]: string | CSSStyleDeclaration;
+        [stylDeclaration: string]: string | StyleDeclaration;
     }
 
-    export interface StyleClass {
-        [rule: string]: CSSStyleDeclaration
+    export interface Style {
+        [rule: string]: StyleDeclaration
     }
 }
 

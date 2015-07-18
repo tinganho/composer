@@ -24,12 +24,15 @@ export class Document extends ComposerDocument<Props, {}> {
         return (
             <html lang='en'>
                 <head>
+                    <title>{this.props.title}</title>
                     <link rel='stylesheet' href='/public/styles/styles.css'/>
-                    <script dangerouslySetInnerHTML={{ __html: 'window.inServer = false; window.inClient = true;' }}></script>
-                    <script src="/public/scripts/vendor/system.js"></script>
-                    <script src="/public/scripts/vendor/react.js"></script>
-                    <script src="/public/scripts/vendor/radium.js"></script>
-                    <script src="/public/scripts/startup.js"></script>
+                    <script type='text/javascript' dangerouslySetInnerHTML={{ __html: 'window.inServer = false; window.inClient = true;' }}></script>
+                    <script type='text/javascript' src="/public/scripts/vendor/promise.js"></script>
+                    <script type='text/javascript' src="/public/scripts/vendor/promise.prototype.finally.js"></script>
+                    <script type='text/javascript' src="/public/scripts/vendor/system.js"></script>
+                    <script type='text/javascript' src="/public/scripts/vendor/react.js"></script>
+                    <script type='text/javascript' src="/public/scripts/vendor/radium.js"></script>
+                    <script type='text/javascript' src="/public/scripts/startup.js"></script>
                     {this.props.jsonScriptData.map(attr => {
                         return (
                             <script

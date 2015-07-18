@@ -1,4 +1,6 @@
 
+/// <reference path='../client/router.d.ts'/>
+
 import { createTextWriter, forEach } from '../core';
 import { sys } from '../sys';
 
@@ -6,11 +8,6 @@ export const enum ModuleKind {
     None,
     Amd,
     CommonJs,
-}
-
-export interface ComponentEmitInfo {
-    className: string;
-    importPath: string;
 }
 
 interface EmitTextWriter {
@@ -33,23 +30,15 @@ interface EmitClientComposerOptions {
 
 export interface PageEmitInfo {
     route: string;
-    document: ComponentEmitInfo;
-    layout: ComponentEmitInfo;
-    contents: ContentEmitInfo[];
-}
-
-export interface ContentEmitInfo extends ComponentEmitInfo {
-
-    /**
-     * Region of the layout this content belongs to.
-     */
-    region: string;
+    document: ComponentInfo;
+    layout: ComponentInfo;
+    contents: ContentComponentInfo[];
 }
 
 export function emitComposer(
     appName: string,
     clientRouterPath: string,
-    imports: ComponentEmitInfo[],
+    imports: ComponentInfo[],
     pageInfos: PageEmitInfo[],
     writer: EmitTextWriter,
     opt: EmitClientComposerOptions) {
@@ -152,17 +141,22 @@ export function emitComposer(
 
     function writeRouterInit() {
         write(`${appName}.Router = new Composer.Router('${appName}', ${appName}.RoutingTable, ${appName}.Component);`);
+        write(`window.ComposerRouter = ${appName}.Router`);
         writeLine();
     }
 
-    function writeComponentEmitInfo(component: ComponentEmitInfo): void {
+    function writeComponentEmitInfo(component: ComponentInfo | ContentComponentInfo): void {
         write('{');
         increaseIndent();
         writeLine();
         write(`className: '${component.className}',`);
         writeLine();
-        write(`importPath: '${component.importPath}'`);
+        write(`importPath: '${component.importPath}',`);
         writeLine();
+        if ((component as ContentComponentInfo).region) {
+            write(`region: '${(component as ContentComponentInfo).region}'`);
+            writeLine();
+        }
         decreaseIndent();
         write('}');
     }

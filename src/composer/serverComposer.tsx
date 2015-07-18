@@ -14,7 +14,7 @@
 import { Component, createElement, MouseEvent } from 'react';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { Express, Request, Response } from 'express';
-import { ComponentEmitInfo, PageEmitInfo, ContentEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
+import { PageEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
 import { Debug, createTextWriter, printError } from '../core';
 import { Diagnostics } from '../diagnostics.generated';
 import { sys } from '../sys';
@@ -261,8 +261,8 @@ export class ServerComposer {
         sys.writeFile(path.join(this.options.rootPath, this.options.clientComposerOutput), jsSource)
     }
 
-    private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentEmitInfo[] {
-        let componentEmitInfos: ComponentEmitInfo[] = [];
+    private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentInfo[] {
+        let componentEmitInfos: ComponentInfo[] = [];
         let classNames: string[] = []
         for (let pageEmitInfo of pageEmitInfos) {
             if (classNames.indexOf(pageEmitInfo.document.className) === -1) {
@@ -368,7 +368,7 @@ export class Page {
     /**
      * Define which layout this page should have.
      */
-    public hasLayout<C extends ProvidiedContentDeclarations>(layout: LayoutDeclaration | typeof ComposerLayout, providiedContentDeclarations: C): Page {
+    public hasLayout<C extends ProvidiedContentDeclarations>(layout: LayoutDeclaration | typeof ComposerLayout, providedContentDeclarations: C): Page {
         if (this.isInfo(layout)) {
             this.currentPlatform.layout = layout;
         }
@@ -383,9 +383,9 @@ export class Page {
         }
 
         let newContents: StoredContentDeclarations = {};
-        for (let region in providiedContentDeclarations) {
+        for (let region in providedContentDeclarations) {
             let newContent = {};
-            let content = providiedContentDeclarations[region];
+            let content = providedContentDeclarations[region];
             if (this.isInfo(content)) {
                 newContents[region] = content;
             }
@@ -428,7 +428,7 @@ export class Page {
     }
 
     private registerPage(): void {
-        let contentEmitInfos: ContentEmitInfo[] = [];
+        let contentEmitInfos: ContentComponentInfo[] = [];
         let document = this.currentPlatform.document;
         let layout = this.currentPlatform.layout;
         let contents = this.currentPlatform.contents;
@@ -462,7 +462,7 @@ export class Page {
             this.currentPlatform.documentProps.jsonScriptData = jsonScriptData;
             let layoutHtml = renderToString(createElement(this.currentPlatform.layout.component, contents));
             let documentHtml = renderToStaticMarkup(createElement(this.currentPlatform.document.component, this.currentPlatform.documentProps));
-            documentHtml = documentHtml.replace('{{layout}}', layoutHtml);
+            documentHtml = '<!DOCTYPE html>' + documentHtml.replace('{{layout}}', layoutHtml);
             res.send(documentHtml);
         });
     }
@@ -473,14 +473,15 @@ export class Page {
         let resultJsonScriptData: JsonScriptAttributes[] = [];
         let numberOfContents = 0;
         let finishedContentFetchings = 0;
+        let self = this;
 
-        for (let content in contents) {
+        for (let region in contents) {
             numberOfContents++;
-            (function(content: string, ContentComponent: typeof ComposerContent) {
+            (function(region: string, ContentComponent: typeof ComposerContent) {
                 ContentComponent.fetch().then(result => {
-                    resultContents[content] = createElement(ContentComponent, result);
+                    resultContents[region] = createElement(ContentComponent, result);
                     resultJsonScriptData.push({
-                        id: `react-composer-content-json-${content.toLowerCase()}`,
+                        id: `react-composer-content-json-${self.getClassName(contents[region].component).toLowerCase()}`,
                         data: JSON.stringify(result)
                     });
 
@@ -492,7 +493,7 @@ export class Page {
                 }).catch(reason => {
                     console.log(reason)
                 });
-            })(content, contents[content].component);
+            })(region, contents[region].component);
         }
     }
 }

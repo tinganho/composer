@@ -21,8 +21,8 @@ export = function(componentFolderPath: string): Pages {
             page.onPlatform(WebPlatform)
                 .hasDocument(DocumentComponent, defaultConfigs)
                 .hasLayout(LayoutComponent, {
-                    NavigationBar: { component: NavigationBar, importPath: contentPath },
-                    TodoList: { component: TodoList, importPath: contentPath },
+                    TopBar: { component: NavigationBar, importPath: contentPath },
+                    Body: { component: TodoList, importPath: contentPath },
                 })
                 .end();
         },
@@ -30,7 +30,7 @@ export = function(componentFolderPath: string): Pages {
             page.onPlatform(WebPlatform)
                 .hasDocument(DocumentComponent, defaultConfigs)
                 .hasLayout(LayoutComponent, {
-                    TodoItem: { component: TodoItem, importPath: contentPath },
+                    Body: { component: TodoItem, importPath: contentPath },
                 })
                 .end();
         }

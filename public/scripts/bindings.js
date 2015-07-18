@@ -21,20 +21,22 @@ App.RoutingTable = [
         route: '/',
         document: {
             className: 'Document',
-            importPath: 'test/cases/projects/test/components/Document.js'
+            importPath: 'test/cases/projects/test/components/Document.js',
         },
         layout: {
             className: 'Layout',
-            importPath: 'test/cases/projects/test/components/Layout.js'
+            importPath: 'test/cases/projects/test/components/Layout.js',
         },
         contents: [
             {
                 className: 'NavigationBar',
-                importPath: 'test/cases/projects/test/components/Contents.js'
+                importPath: 'test/cases/projects/test/components/Contents.js',
+                region: 'TopBar'
             },
             {
                 className: 'TodoList',
-                importPath: 'test/cases/projects/test/components/Contents.js'
+                importPath: 'test/cases/projects/test/components/Contents.js',
+                region: 'Body'
             }
         ]
     },
@@ -42,18 +44,19 @@ App.RoutingTable = [
         route: '/todo',
         document: {
             className: 'Document',
-            importPath: 'test/cases/projects/test/components/Document.js'
+            importPath: 'test/cases/projects/test/components/Document.js',
         },
         layout: {
             className: 'Layout',
-            importPath: 'test/cases/projects/test/components/Layout.js'
+            importPath: 'test/cases/projects/test/components/Layout.js',
         },
         contents: [
             {
                 className: 'TodoItem',
-                importPath: 'test/cases/projects/test/components/Contents.js'
+                importPath: 'test/cases/projects/test/components/Contents.js',
+                region: 'Body'
             }
         ]
     }
 ];
-App.Router = new Composer.Router('App', App.RoutingTable, App.Component);
+App.Router = new Composer.Router('App', App.RoutingTable, App.Component);window.ComposerRouter = App.Router

@@ -87,7 +87,7 @@ declare module React {
         type: Component<P, S>,
         props?: P,
         ...children: ReactNode[]): ReactElement<P>;
-        
+
     function cloneElement<P>(
         element: DOMElement<P>,
         props?: P,
@@ -132,6 +132,11 @@ declare module React {
     //
     // Component API
     // ----------------------------------------------------------------------
+    
+    interface ReactIntrinsicProps {
+        key: string | number;
+        children: string | number | Element | Element[];
+    }
 
     // Base component for plain JS classes
     class Component<P, S> implements ComponentLifecycle<P, S> {
