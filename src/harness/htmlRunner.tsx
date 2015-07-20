@@ -73,6 +73,7 @@ export default class HtmlRunner {
             Debug.fail(Diagnostics.Could_not_get_folder_name_from_0, folderPath);
         }
         app.use('/src/client', express.static(path.join(this.root, 'built/src/client')));
+        app.use('/test/defaultComponents', express.static(path.join(this.root, 'built/test/defaultComponents')));
         app.use('/public', express.static(path.join(this.root, 'public')));
         app.use('/' + componentFolderPath, express.static(path.join('built', folderPath, 'components')));
         app.use(logger('dev'));
@@ -86,7 +87,7 @@ export default class HtmlRunner {
             moduleKind: ModuleKind.CommonJs,
         }, this.options);
 
-        let directives = require(path.join(this.root, 'built', folderPath, 'pages.js')).test({
+        let directives = require(path.join(this.root, 'built', folderPath, 'test.js')).test({
             componentFolderPath,
             useDefaultDocument,
             useDefaultLayout: function(): LayoutDeclaration {
@@ -98,13 +99,13 @@ export default class HtmlRunner {
             useDefaultContent: function(content: string): ContentDeclaration {
                 return {
                     component: (contentComponents as any)[content] as typeof ComposerContent,
-                    importPath: 'test/default',
+                    importPath: 'test/defaultComponents/contents',
                 }
             },
             defaultPlatform: defaultPlatform
         });
 
-        serverComposer.setDefaultDocument(useDefaultDocument());
+        serverComposer.setDefaultDocument(useDefaultDocument(), { configs: ['default'] });
         serverComposer.setDefaultPlatform(defaultPlatform);
 
         serverComposer.setPages(directives.pages);

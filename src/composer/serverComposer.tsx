@@ -166,6 +166,7 @@ export class ServerComposer {
     public server: Server;
     public defaultDocument: DocumentDeclaration;
     public defaultPlatform: PlatformDetect;
+    public defaultDocumentProps: DocumentProps;
 
     /**
      * Storage for all page emit infos.
@@ -221,7 +222,7 @@ export class ServerComposer {
         this.emitClientRouter();
     }
 
-    public setDefaultDocument(document: typeof ComposerDocument | DocumentDeclaration): void {
+    public setDefaultDocument<T extends DocumentProps>(document: typeof ComposerDocument | DocumentDeclaration, documentProps: T): void {
         if (isDeclaration(document)) {
             this.defaultDocument = document;
         }
@@ -234,6 +235,8 @@ export class ServerComposer {
                 importPath: path.join(this.options.defaultDocumentFolder, getClassName(document)),
             }
         }
+
+        this.defaultDocumentProps = documentProps;
     }
 
     public setDefaultPlatform(platform: PlatformDetect): void {
@@ -361,6 +364,7 @@ export class Page {
 
         if (this.serverComposer.defaultDocument) {
             this.currentPlatform.document = this.serverComposer.defaultDocument;
+            this.currentPlatform.documentProps = this.serverComposer.defaultDocumentProps;
         }
     }
 

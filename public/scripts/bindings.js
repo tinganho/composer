@@ -1,10 +1,10 @@
-var Document = require('test/cases/projects/test/components/Document.js').Document;
-var Layout = require('test/cases/projects/test/components/Layout.js').Layout;
-var NavigationBar = require('test/cases/projects/test/components/Contents.js').NavigationBar;
-var TodoList = require('test/cases/projects/test/components/Contents.js').TodoList;
-var Document = require('test/cases/projects/test/components/Document.js').Document;
-var Layout = require('test/cases/projects/test/components/Layout.js').Layout;
-var TodoItem = require('test/cases/projects/test/components/Contents.js').TodoItem;
+var Document = require('/test/defaultComponents/document').Document;
+var Layout = require('/test/defaultComponents/layout').Layout;
+var NavigationBar = require('test/defaultComponents/contents').NavigationBar;
+var TodoList = require('test/defaultComponents/contents').TodoList;
+var Document = require('/test/defaultComponents/document').Document;
+var Layout = require('/test/defaultComponents/layout').Layout;
+var TodoItem = require('test/defaultComponents/contents').TodoItem;
 var Composer = require('public/scripts/composer.js');
 var App = {};
 window.App = App;
@@ -21,21 +21,21 @@ App.RoutingTable = [
         route: '/',
         document: {
             className: 'Document',
-            importPath: 'test/cases/projects/test/components/Document.js',
+            importPath: '/test/defaultComponents/document',
         },
         layout: {
             className: 'Layout',
-            importPath: 'test/cases/projects/test/components/Layout.js',
+            importPath: '/test/defaultComponents/layout',
         },
         contents: [
             {
                 className: 'NavigationBar',
-                importPath: 'test/cases/projects/test/components/Contents.js',
+                importPath: 'test/defaultComponents/contents',
                 region: 'TopBar'
             },
             {
                 className: 'TodoList',
-                importPath: 'test/cases/projects/test/components/Contents.js',
+                importPath: 'test/defaultComponents/contents',
                 region: 'Body'
             }
         ]
@@ -44,16 +44,16 @@ App.RoutingTable = [
         route: '/todo',
         document: {
             className: 'Document',
-            importPath: 'test/cases/projects/test/components/Document.js',
+            importPath: '/test/defaultComponents/document',
         },
         layout: {
             className: 'Layout',
-            importPath: 'test/cases/projects/test/components/Layout.js',
+            importPath: '/test/defaultComponents/layout',
         },
         contents: [
             {
                 className: 'TodoItem',
-                importPath: 'test/cases/projects/test/components/Contents.js',
+                importPath: 'test/defaultComponents/contents',
                 region: 'Body'
             }
         ]

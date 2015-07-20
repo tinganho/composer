@@ -5,7 +5,7 @@ export function test(d: BrowserDirectives): BrowserDirectives {
     d.pages = {
         '/': page => {
             page.hasLayout(d.useDefaultLayout(), {
-                TopBar: d.useDefaultContent('TopBar'),
+                TopBar: d.useDefaultContent('NavigationBar'),
                 Body: d.useDefaultContent('TodoList'),
             })
             .end();
