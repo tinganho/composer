@@ -137,7 +137,6 @@ export default class HtmlRunner {
 
             (function(folderPath: string, fileName: string) {
                 let folderName = path.basename(folderPath);
-                let projectFile = require(path.join(self.root, 'built', folderPath, 'config.js')) as ProjectFile;
 
                 describe('Image diffs |', () => {
                     it(folderName, function(done) {
