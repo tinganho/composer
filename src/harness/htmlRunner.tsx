@@ -35,9 +35,6 @@ import { Document } from '../../test/defaultComponents/document';
 import * as contentComponents from '../../test/defaultComponents/contents';
 import { Layout } from '../../test/defaultComponents/layout';
 
-(global as any).inServer = true;
-(global as any).inClient = false;
-
 declare function require(path: string): any;
 require('source-map-support').install();
 

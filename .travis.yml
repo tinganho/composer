@@ -4,10 +4,9 @@ language: node_js
 node_js:
   - "0.12"
 
-before_install:
-  - npm install typescript
+after_install:
   - npm install gulp-cli -g
   - gulp generate-diagnostics
 
 before_script:
-  - tsc
+  - node_modules/typescript/bin/tsc
