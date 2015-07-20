@@ -4,9 +4,6 @@ language: node_js
 node_js:
   - "0.12"
 
-after_install:
-  - npm install gulp-cli -g
-  - gulp generate-diagnostics
-
 before_script:
+  - phantomjs --version
   - node_modules/typescript/bin/tsc

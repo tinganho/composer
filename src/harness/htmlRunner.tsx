@@ -202,9 +202,11 @@ export default class HtmlRunner {
                         expectedImage: expectedFilePath,
                         diffImage: diffFilePath,
                     }, (err, imagesAreSame) => {
-                        expect(imagesAreSame).to.be.true;
                         if (imagesAreSame) {
                             removeFolderOrFile(diffFilePath);
+                        }
+                        else {
+                            throw new TypeError('Baseline image does not correspond to result image.');
                         }
                         serverComposer.stop(err => {
                             app = undefined;
