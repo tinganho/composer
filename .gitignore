@@ -1,3 +1,5 @@
 
-node_modules
 built
+node_modules
+test/baselines/local
+test/baselines/diff

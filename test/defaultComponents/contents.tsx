@@ -1,12 +1,12 @@
 
-/// <reference path='../../../../../typings/react/react.d.ts'/>
-/// <reference path='../../../../../typings/react/react-jsx.d.ts'/>
-/// <reference path='../../../../../typings/radium/radium.d.ts'/>
-/// <reference path='../../../../../typings/platform/platform.d.ts' />
-/// <reference path='../../../../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
+/// <reference path='../../typings/react/react.d.ts'/>
+/// <reference path='../../typings/react/react-jsx.d.ts'/>
+/// <reference path='../../typings/radium/radium.d.ts'/>
+/// <reference path='../../typings/platform/platform.d.ts' />
+/// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 
 let __r = require;
-import { ComposerContent, Link } from '../../../../../src/client/components';
+import { ComposerContent, Link } from '../../src/client/components';
 import ReactType = require('react');
 let React: typeof ReactType = inClient ? (window as any).React : __r('react');
 import PureRenderMixinType = require('react-addons-pure-render-mixin');
@@ -84,11 +84,9 @@ const TodoItemStyle: TodoItemStyleComponents = {
 class TodoListItem extends ComposerContent<TodoItemProps, {}> {
     public mixins = [PureRenderMixin];
 
-    public showAlert() {
-    }
     public render() {
         return (
-            <li style={[TodoItemStyle.Container]} onClick={this.showAlert}>
+            <li style={[TodoItemStyle.Container]}>
                 <Link to='/todo' style={[TodoItemStyle.Link]}>
                     <h1 style={[TodoItemStyle.Title]}>{this.props.title}</h1>
                     <p style={[TodoItemStyle.Description]}>{this.props.description}</p>

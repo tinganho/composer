@@ -7,7 +7,7 @@
 /// <reference path='../../typings/glob/glob.d.ts'/>
 /// <reference path='../../node_modules/typescript/bin/typescript.d.ts'/>
 /// <reference path='../client/router.d.ts'/>
-/// <reference path='../client/infos.d.ts'/>
+/// <reference path='../client/declarations.d.ts'/>
 /// <reference path='../client/components.d.ts'/>
 
 
@@ -41,6 +41,17 @@ export interface PlatformDetect {
      * Specify a function to detect this platform.
      */
     detect(req: Request): boolean;
+}
+
+export function isDeclaration<T extends PageLayerDeclaration, U extends typeof ComposerComponent>(decl: T | U): decl is T {
+    if ((decl as T).importPath) {
+        return true;
+    }
+    return false;
+}
+
+export function getClassName(c: typeof ComposerComponent): string {
+    return c.name === 'RadiumEnhancer' ? (c as any).__proto__.name : c.name;
 }
 
 interface ComposerOptions {
@@ -153,6 +164,8 @@ export class ServerComposer {
     public options: ComposerOptions;
     public pageCount: number;
     public server: Server;
+    public defaultDocument: DocumentDeclaration;
+    public defaultPlatform: PlatformDetect;
 
     /**
      * Storage for all page emit infos.
@@ -206,6 +219,25 @@ export class ServerComposer {
         this.pageCount = count;
         this.emitBindings();
         this.emitClientRouter();
+    }
+
+    public setDefaultDocument(document: typeof ComposerDocument | DocumentDeclaration): void {
+        if (isDeclaration(document)) {
+            this.defaultDocument = document;
+        }
+        else {
+            if (!this.options.defaultDocumentFolder) {
+                Debug.fail(Diagnostics.You_have_not_defined_a_default_document_folder);
+            }
+            this.defaultDocument = {
+                component: document,
+                importPath: path.join(this.options.defaultDocumentFolder, getClassName(document)),
+            }
+        }
+    }
+
+    public setDefaultPlatform(platform: PlatformDetect): void {
+        this.defaultPlatform = platform;
     }
 
     public start(callback?: (err?: Error) => void): void {
@@ -322,21 +354,32 @@ export class Page {
     constructor(route: string, serverComposer: ServerComposer) {
         this.route = route;
         this.serverComposer = serverComposer;
+
+        if (this.serverComposer.defaultPlatform) {
+            this.setPlatform(this.serverComposer.defaultPlatform);
+        }
+
+        if (this.serverComposer.defaultDocument) {
+            this.currentPlatform.document = this.serverComposer.defaultDocument;
+        }
     }
 
     /**
      * Specify a platform with a PlatformDetect.
      */
     public onPlatform(platform: PlatformDetect): Page {
+        this.setPlatform(platform);
+
+        return this;
+    }
+
+    private setPlatform(platform: PlatformDetect): void {
         this.platforms[platform.name] = {
             imports: [],
             importNames: [],
             detect: platform.detect
         }
-
         this.currentPlatform = this.platforms[platform.name];
-
-        return this;
     }
 
     /**
@@ -347,7 +390,7 @@ export class Page {
             Debug.fail(Diagnostics.You_must_define_a_platform_with_onPlatform_method_before_you_call_hasDocument);
         }
 
-        if (this.isInfo(document)) {
+        if (isDeclaration(document)) {
             this.currentPlatform.document = document;
         }
         else {
@@ -356,7 +399,7 @@ export class Page {
             }
             this.currentPlatform.document = {
                 component: document,
-                importPath: path.join(this.serverComposer.options.defaultDocumentFolder, this.getClassName(document)),
+                importPath: path.join(this.serverComposer.options.defaultDocumentFolder, getClassName(document)),
             }
         }
 
@@ -368,8 +411,8 @@ export class Page {
     /**
      * Define which layout this page should have.
      */
-    public hasLayout<C extends ProvidiedContentDeclarations>(layout: LayoutDeclaration | typeof ComposerLayout, providedContentDeclarations: C): Page {
-        if (this.isInfo(layout)) {
+    public hasLayout<C extends ProvidedContentDeclarations>(layout: LayoutDeclaration | typeof ComposerLayout, providedContentDeclarations: C): Page {
+        if (isDeclaration(layout)) {
             this.currentPlatform.layout = layout;
         }
         else {
@@ -378,7 +421,7 @@ export class Page {
             }
             this.currentPlatform.layout = {
                 component: layout,
-                importPath: path.join(this.serverComposer.options.defaultLayoutFolder, this.getClassName(layout)),
+                importPath: path.join(this.serverComposer.options.defaultLayoutFolder, getClassName(layout)),
             }
         }
 
@@ -386,7 +429,7 @@ export class Page {
         for (let region in providedContentDeclarations) {
             let newContent = {};
             let content = providedContentDeclarations[region];
-            if (this.isInfo(content)) {
+            if (isDeclaration(content)) {
                 newContents[region] = content;
             }
             else {
@@ -395,7 +438,7 @@ export class Page {
                 }
                 newContents[region] = {
                     component: content,
-                    importPath: path.join(this.serverComposer.options.defaultContentFolder, this.getClassName(content)),
+                    importPath: path.join(this.serverComposer.options.defaultContentFolder, getClassName(content)),
                 }
             }
         }
@@ -416,17 +459,6 @@ export class Page {
         }
     }
 
-    private isInfo<T extends PageLayerDeclaration, U extends typeof ComposerComponent>(info: T | U): info is T {
-        if ((info as T).importPath) {
-            return true;
-        }
-        return false;
-    }
-
-    private getClassName(c: typeof ComposerComponent): string {
-        return c.name === 'RadiumEnhancer' ? (c as any).__proto__.name : c.name;
-    }
-
     private registerPage(): void {
         let contentEmitInfos: ContentComponentInfo[] = [];
         let document = this.currentPlatform.document;
@@ -437,7 +469,7 @@ export class Page {
             let content = contents[region];
 
             contentEmitInfos.push({
-                className: this.getClassName(content.component),
+                className: getClassName(content.component),
                 importPath: content.importPath,
                 region: region,
             });
@@ -446,11 +478,11 @@ export class Page {
         this.serverComposer.pageEmitInfos.push({
             route: this.route,
             document: {
-                className: this.getClassName(document.component),
+                className: getClassName(document.component),
                 importPath: document.importPath,
             },
             layout: {
-                className: this.getClassName(layout.component),
+                className: getClassName(layout.component),
                 importPath: layout.importPath,
             },
             contents: contentEmitInfos,
@@ -473,7 +505,6 @@ export class Page {
         let resultJsonScriptData: JsonScriptAttributes[] = [];
         let numberOfContents = 0;
         let finishedContentFetchings = 0;
-        let self = this;
 
         for (let region in contents) {
             numberOfContents++;
@@ -481,7 +512,7 @@ export class Page {
                 ContentComponent.fetch().then(result => {
                     resultContents[region] = createElement(ContentComponent, result);
                     resultJsonScriptData.push({
-                        id: `react-composer-content-json-${self.getClassName(contents[region].component).toLowerCase()}`,
+                        id: `react-composer-content-json-${getClassName(contents[region].component).toLowerCase()}`,
                         data: JSON.stringify(result)
                     });
 

@@ -7,12 +7,15 @@
 /// <reference path='../../typings/nightmare/nightmare.d.ts'/>
 /// <reference path='../../typings/morgan/morgan.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
-/// <reference path='../../typings/connect-modrewrite/connect-modrewrite.d.ts'/>
+/// <reference path='../../typings/image-diff/image-diff.d.ts'/>
+/// <reference path='../../typings/rimraf/rimraf.d.ts'/>
+/// <reference path='../client/declarations.d.ts'/>
 
 import { CommandLineOptions, Map } from './types';
+import imageDiff = require('image-diff');
 import logger = require('morgan');
 import { cf } from '../../conf/conf';
-import { ServerComposer } from '../composer/serverComposer';
+import { ServerComposer, PlatformDetect } from '../composer/serverComposer';
 import { ModuleKind } from '../composer/webClientComposerEmitter';
 import { ComposerDocument } from '../client/components';
 import React = require('react');
@@ -25,8 +28,12 @@ import { parseCommandLineOptions } from './commandLineParser';
 import { printDiagnostics, printDiagnostic, printError, Debug } from '../core';
 import { sys } from '../sys';
 import { Diagnostics } from '../diagnostics.generated';
-import rewrite = require('connect-modrewrite');
+import { sync as removeFolderOrFile } from 'rimraf';
 import { expect } from 'chai';
+import { BrowserDirectives } from './browserDirectives';
+import { Document } from '../../test/defaultComponents/document';
+import * as contentComponents from '../../test/defaultComponents/contents';
+import { Layout } from '../../test/defaultComponents/layout';
 
 (global as any).inServer = true;
 (global as any).inClient = false;
@@ -38,9 +45,19 @@ interface ProjectFile {
     route: string;
 }
 
+let defaultPlatform: PlatformDetect = { name: 'all', detect: (req: express.Request) => true };
+
+function useDefaultDocument(): DocumentDeclaration {
+    return {
+        component: Document,
+        importPath: '/test/defaultComponents/document',
+    }
+}
+
 export default class HtmlRunner {
     public options: CommandLineOptions;
     public builtFolder = path.join(__dirname, '../../');
+    public directives: BrowserDirectives;
     public root = path.join(this.builtFolder, '../');
 
     constructor(args: string[]) {
@@ -52,14 +69,12 @@ export default class HtmlRunner {
         this.options = options;
     }
 
-    public createComposer(app: express.Express, folderPath: string, fileName: string, projectFile: ProjectFile,  shouldEmitComposer: boolean): ServerComposer {
+    public createComposer(app: express.Express, folderPath: string, fileName: string, shouldEmitComposer: boolean): { serverComposer: ServerComposer, browserDirectives: BrowserDirectives } {
         let componentFolderPath = path.join(folderPath, 'components');
         let folderName = path.basename(folderPath);
         if (!folderName) {
             Debug.fail(Diagnostics.Could_not_get_folder_name_from_0, folderPath);
         }
-        app.use(rewrite([
-        ]));
         app.use('/src/client', express.static(path.join(this.root, 'built/src/client')));
         app.use('/public', express.static(path.join(this.root, 'public')));
         app.use('/' + componentFolderPath, express.static(path.join('built', folderPath, 'components')));
@@ -74,10 +89,30 @@ export default class HtmlRunner {
             moduleKind: ModuleKind.CommonJs,
         }, this.options);
 
-        let pages = require(path.join(this.root, 'built', folderPath, 'pages.js'));
-        serverComposer.setPages(pages(componentFolderPath));
+        let directives = require(path.join(this.root, 'built', folderPath, 'pages.js')).test({
+            componentFolderPath,
+            useDefaultDocument,
+            useDefaultLayout: function(): LayoutDeclaration {
+                return {
+                    component: Layout,
+                    importPath: '/test/defaultComponents/layout',
+                }
+            },
+            useDefaultContent: function(content: string): ContentDeclaration {
+                return {
+                    component: (contentComponents as any)[content] as typeof ComposerContent,
+                    importPath: 'test/default',
+                }
+            },
+            defaultPlatform: defaultPlatform
+        });
 
-        return serverComposer;
+        serverComposer.setDefaultDocument(useDefaultDocument());
+        serverComposer.setDefaultPlatform(defaultPlatform);
+
+        serverComposer.setPages(directives.pages);
+
+        return { serverComposer, browserDirectives: directives };
     }
 
     private stopServerDueToError(serverComposer: ServerComposer, err: Error, callback: () => void) {
@@ -89,11 +124,13 @@ export default class HtmlRunner {
         let self = this;
         let pattern: string;
         if (this.options.tests) {
-            pattern = `test/cases/*${this.options.tests}*/pages.js`;
+            pattern = `test/cases/*${this.options.tests}*/test.js`;
         }
         else {
-            pattern = 'test/cases/projects/*/pages.js';
+            pattern = 'test/cases/projects/*/test.js';
         }
+        removeFolderOrFile(path.join(this.root, 'test/baselines/local'));
+        removeFolderOrFile(path.join(this.root, 'test/baselines/diff'));
         let filePaths = glob(pattern, { cwd: this.builtFolder });
 
         for (var filePath of filePaths) {
@@ -102,45 +139,54 @@ export default class HtmlRunner {
             var fileName = jsFileName.replace(/\.js$/, '');
 
             (function(folderPath: string, fileName: string) {
-                let folderName = path.dirname(folderPath);
+                let folderName = path.basename(folderPath);
                 let projectFile = require(path.join(self.root, 'built', folderPath, 'config.js')) as ProjectFile;
 
-                describe('Web client tests:', () => {
-                    it(`image for ${fileName}`, function(done) {
+                describe('Image diffs |', () => {
+                    it(folderName, function(done) {
                         if (self.options.interactive) {
                             this.timeout(10000000);
                         }
 
                         let app = express();
-                        let serverComposer = self.createComposer(app, folderPath, fileName, projectFile, /*shouldEmitComposer*/false);
+                        let { serverComposer, browserDirectives } = self.createComposer(app, folderPath, fileName, /*shouldEmitComposer*/false);
                         serverComposer.start(err => {
                             if (err) {
                                 return self.stopServerDueToError(serverComposer, err, () => done());
                             }
 
-                            self.testWithHeadlessWebBrowser(app, serverComposer, fileName, projectFile, () =>{
+                            self.testWithHeadlessWebBrowser(app, serverComposer, fileName, browserDirectives, () =>{
                                 done();
                             });
                         });
-                    });
-
-                    it(`web client composer for ${fileName}`, done => {
-                        let app = express();
-                        let serverComposer = self.createComposer(app, folderPath, fileName, projectFile, /*shouldEmitComposer*/true);
-                        done();
                     });
                 });
             })(folderPath, fileName);
         }
     }
 
-    private testWithHeadlessWebBrowser(app: express.Express, serverComposer: ServerComposer, folderName: string, projectFile: ProjectFile, callback: () => void) {
-        let filePath = path.join(this.root, `test/baselines/local/${folderName}`);
-        new HeadlessWebBrowser({ port: 7000 })
+    private testWithHeadlessWebBrowser(
+        app: express.Express,
+        serverComposer: ServerComposer,
+        folderName: string,
+        browserDirectives: BrowserDirectives,
+        callback: () => void) {
+
+        let resultFilePath = path.join(this.root, `test/baselines/local/${folderName}.jpg`);
+        let expectedFilePath = path.join(this.root, `test/baselines/reference/${folderName}.jpg`);
+        let diffFilePath = path.join(this.root, `test/baselines/diff/${folderName}.jpg`);
+        let initialRoute = browserDirectives.initialRoute || '/';
+        let headlessWebBrowser = new HeadlessWebBrowser({ port: 7000 })
             .viewport(cf.TEST_PAGE_VIEW_PORT.WIDTH, cf.TEST_PAGE_VIEW_PORT.HEIGHT)
-            .goto(`http://${cf.HOST}:${cf.PORT}${projectFile.route}`)
-            .wait()
-            .screenshot(`${filePath}.jpg`)
+            .goto(`http://${cf.HOST}:${cf.PORT}${initialRoute}`)
+            .wait();
+
+        let browserActions = browserDirectives.useBrowserActions ?
+            browserDirectives.useBrowserActions(headlessWebBrowser) :
+            headlessWebBrowser;
+
+        browserActions
+            .screenshot(resultFilePath)
             .run((err, headlessWebBrowser) => {
                 if(err) {
                     printDiagnostic(Diagnostics.Could_not_start_headless_web_browser);
@@ -151,10 +197,23 @@ export default class HtmlRunner {
                     printDiagnostic(Diagnostics.Stop_the_server_by_exiting_the_session_CTRL_plus_C);
                 }
                 else {
-                    serverComposer.stop(err => {
-                        app = undefined;
-                        serverComposer = undefined;
-                        callback();
+                    if (!sys.fileExists(expectedFilePath)) {
+                        throw new TypeError('There is no expected image file.');
+                    }
+                    imageDiff({
+                        actualImage: resultFilePath,
+                        expectedImage: expectedFilePath,
+                        diffImage: diffFilePath,
+                    }, (err, imagesAreSame) => {
+                        expect(imagesAreSame).to.be.true;
+                        if (imagesAreSame) {
+                            removeFolderOrFile(diffFilePath);
+                        }
+                        serverComposer.stop(err => {
+                            app = undefined;
+                            serverComposer = undefined;
+                            callback();
+                        });
                     });
                 }
             });

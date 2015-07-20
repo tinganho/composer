@@ -22,6 +22,6 @@ declare interface StoredContentDeclarations {
     [index: string]: ContentDeclaration;
 }
 
-declare interface ProvidiedContentDeclarations {
+declare interface ProvidedContentDeclarations {
     [index: string]: ContentDeclaration | typeof ComposerContent;
 }

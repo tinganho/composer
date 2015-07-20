@@ -1,13 +1,13 @@
 
 
-/// <reference path='../../../../../typings/react/react.d.ts'/>
-/// <reference path='../../../../../typings/react/react-jsx.d.ts'/>
-/// <reference path='../../../../../typings/radium/radium.d.ts'/>
-/// <reference path='../../../../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
-/// <reference path='../../../../../src/client/infos.d.ts' />
+/// <reference path='../../typings/react/react.d.ts'/>
+/// <reference path='../../typings/react/react-jsx.d.ts'/>
+/// <reference path='../../typings/radium/radium.d.ts'/>
+/// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
+/// <reference path='../../src/client/declarations.d.ts' />
 
 let __r = require;
-import { ComposerLayout, ComposerContent } from '../../../../../src/client/components';
+import { ComposerLayout, ComposerContent } from '../../src/client/components';
 import { NavigationBar, TodoList } from './Contents';
 import ReactType = require('react');
 let React: typeof ReactType = inClient ? (window as any).React : __r('react');

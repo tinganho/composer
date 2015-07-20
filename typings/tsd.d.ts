@@ -16,3 +16,4 @@
 /// <reference path="gulp-rename/gulp-rename.d.ts" />
 /// <reference path="es6-promise/es6-promise.d.ts" />
 /// <reference path="react/react-addons.d.ts" />
+/// <reference path="rimraf/rimraf.d.ts" />

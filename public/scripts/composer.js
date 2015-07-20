@@ -87,7 +87,6 @@ var Router = (function () {
                         component.fetch()
                             .then(function (result) {
                             try {
-                                console.log(content.region);
                                 placeholderContents[content.region] = React.createElement(window[_this.appName].Component.Content[content.className], result);
                             }
                             catch (err) {

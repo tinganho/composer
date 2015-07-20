@@ -55,6 +55,9 @@
     },
     "react/react-addons.d.ts": {
       "commit": "0fff32b558aa91ba24cfca5479aba02e4ef2fafe"
+    },
+    "rimraf/rimraf.d.ts": {
+      "commit": "db475daba23206e8cd0ac04d47f0764f4a62f7da"
     }
   }
 }

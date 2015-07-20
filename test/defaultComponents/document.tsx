@@ -1,12 +1,12 @@
 
-/// <reference path='../../../../../typings/react/react.d.ts'/>
-/// <reference path='../../../../../typings/react/react-jsx.d.ts'/>
-/// <reference path='../../../../../typings/platform/platform.d.ts'/>
-/// <reference path='../../../../../src/client/components.d.ts'/>
-/// <reference path='../../../../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
+/// <reference path='../../typings/react/react.d.ts'/>
+/// <reference path='../../typings/react/react-jsx.d.ts'/>
+/// <reference path='../../typings/platform/platform.d.ts'/>
+/// <reference path='../../src/client/components.d.ts'/>
+/// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
 
 let __r = require;
-import { ComposerDocument } from '../../../../../src/client/components';
+import { ComposerDocument } from '../../src/client/components';
 import ReactType = require('react');
 let React: typeof ReactType = inClient ? (window as any).React : __r('react');
 import PureRenderMixinType = require('react-addons-pure-render-mixin');
@@ -48,8 +48,4 @@ export class Document extends ComposerDocument<Props, {}> {
             </html>
         );
     }
-}
-
-export var defaultConfigs: DocumentProps = {
-    confs: ['default']
 }
