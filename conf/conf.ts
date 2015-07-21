@@ -20,13 +20,15 @@ export var cf = {
      *
      * @type { HEIGHT: number,  WIDTH: number }
      */
-    TEST_PAGE_VIEW_PORT: {
-        HEIGHT: 1200,
-        WIDTH: 800,
+    SCREEN_RESOLUTION: {
+        WIDTH: 1024,
+        HEIGHT: 768,
     },
 
     /**
      * Default app name.
+     *
+     * @type string
      */
     DEFAULT_APP_NAME: 'App',
 
@@ -40,7 +42,37 @@ export var cf = {
     /**
      * Default new line for output files.
      *
-     * @type number
+     * @type string
      */
     DEFAULT_NEW_LINE: '\n',
+
+    /**
+     * Default browserstack username.
+     *
+     * @type string
+     */
+    DEFAULT_BROWSERSTACK_USER: 'tinganho1',
+
+    /**
+     * Default browserstack key.
+     *
+     * @type string
+     */
+    DEFAULT_BROWSERSTACK_KEY: '7GZGJmC8yz4LBmo1xfSe',
+
+    /**
+     * Default selenium server.
+     *
+     * @type string
+     */
+    DEFAULT_SELENIUM_SERVER: 'http://hub.browserstack.com/wd/hub',
+
+    /**
+     * Specify the idle time for your webdriver tests.
+     *
+     * @type string
+     */
+    WEBDRIVER_IDLE_TIME: 60000,
 }
+
+export default cf;

@@ -190,3 +190,5 @@ export var sys: System = (function () {
     }
     return getNodeSystem();
 })();
+
+export default sys;

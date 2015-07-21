@@ -87,10 +87,12 @@ class TodoListItem extends ComposerContent<TodoItemProps, {}> {
     public render() {
         return (
             <li style={[TodoItemStyle.Container]}>
-                <Link to='/todo' style={[TodoItemStyle.Link]}>
-                    <h1 style={[TodoItemStyle.Title]}>{this.props.title}</h1>
-                    <p style={[TodoItemStyle.Description]}>{this.props.description}</p>
-                </Link>
+                <div className='todo-list-item' id={`todo-list-item-${this.props.id}`}>
+                    <Link to='/todo' style={[TodoItemStyle.Link]}>
+                        <h1 style={[TodoItemStyle.Title]}>{this.props.title}</h1>
+                        <p style={[TodoItemStyle.Description]}>{this.props.description}</p>
+                    </Link>
+                </div>
             </li>
         );
     }
@@ -149,7 +151,7 @@ export class TodoList extends ComposerContent<TodoListProps, {}> {
             <div className='TodoList'>
                 <ul style={[TodoListStyle.List]}>
                     {this.props.list.map(todo =>{
-                        return <TodoListItem key={todo.id} title={todo.title} description={todo.description}/>
+                        return <TodoListItem key={todo.id} id={todo.id} title={todo.title} description={todo.description}/>
                     })}
                 </ul>
             </div>
@@ -158,12 +160,24 @@ export class TodoList extends ComposerContent<TodoListProps, {}> {
 }
 
 @Radium
-export class TodoItem extends ComposerContent<{}, {}> {
+export class TodoItem extends ComposerContent<TodoItemProps, {}> {
     public mixins = [PureRenderMixin];
+
+    static fetch(): Promise<TodoItemProps> {
+        let promise = new Promise<TodoItemProps>((resolve, reject) => {
+            resolve({
+                id: 1,
+                title: 'Donec id elit non mi porta gravida at eget metus.',
+                description: 'Cras justo odio, dapibus ac facilisis in, egestas eget quam.',
+            });
+        });
+
+        return promise;
+    }
 
     public render() {
         return (
-            <div className='ajhue'></div>
+            <div className='todo' id={`todo-${this.props.id}`}></div>
         );
     }
 }

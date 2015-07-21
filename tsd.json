@@ -32,12 +32,6 @@
     "mime/mime.d.ts": {
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
     },
-    "sinon/sinon.d.ts": {
-      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
-    },
-    "nightmare/nightmare.d.ts": {
-      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
-    },
     "react/react-jsx.d.ts": {
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
     },
@@ -58,6 +52,9 @@
     },
     "rimraf/rimraf.d.ts": {
       "commit": "db475daba23206e8cd0ac04d47f0764f4a62f7da"
+    },
+    "mkdirp/mkdirp.d.ts": {
+      "commit": "8f51d25ad3523cd01f2d92e343247852f6b70dff"
     }
   }
 }

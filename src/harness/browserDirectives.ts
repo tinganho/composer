@@ -1,13 +1,11 @@
 
-/// <reference path='../../typings/nightmare/nightmare.d.ts'/>
-
-import HeadlessWebBrowser = require('nightmare');
+import { WebdriverTest } from './webdriverTest';
 import { Pages, PlatformDetect } from '../../src/composer/serverComposer';
 
 export interface BrowserDirectives {
     componentFolderPath: string;
     initialRoute: string;
-    useBrowserActions?: (browser: HeadlessWebBrowser) => HeadlessWebBrowser;
+    useBrowserActions?: (webdriver: WebdriverTest) => WebdriverTest;
     pages: Pages;
     useDefaultDocument: () => DocumentDeclaration;
     useDefaultLayout: () => LayoutDeclaration;

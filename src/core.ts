@@ -360,9 +360,7 @@ export namespace Debug {
     }
 
     export function debug(text: string): void {
-        console.log(debugText);
-        console.log(text);
-        console.log(debugText);
+        console.log(`[ ${(<any>('message')).magenta} ] - ${text}`);
     }
 
     export function fail(diagnostic: DiagnosticMessage, ...args: string[]): void {
