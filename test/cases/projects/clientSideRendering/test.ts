@@ -12,14 +12,14 @@ export function test(d: BrowserDirectives): BrowserDirectives {
         },
         '/todo': page => {
             page.hasLayout(d.useDefaultLayout(), {
-                Body: d.useDefaultContent('TodoItem'),
+                Body: d.useDefaultContent('Todo'),
             })
             .end();
         }
     }
 
     d.useBrowserActions = webdriver => {
-        webdriver.click('todo-list-item-1').wait({ className: 'todo' })
+        webdriver.click('todo-list-item-1').wait('todo-1');
         return webdriver;
     }
 

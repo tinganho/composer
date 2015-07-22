@@ -1,9 +1,9 @@
 
 /// <reference path='../../typings/node/node.d.ts'/>
 /// <reference path='../../typings/mkdirp/mkdirp.d.ts'/>
-/// <reference path='../../typings/browserstack-webdriver/browserstack-webdriver.d.ts'/>
+/// <reference path='../../typings/selenium-webdriver/selenium-webdriver.d.ts'/>
 
-import webdriver = require('browserstack-webdriver');
+import webdriver = require('selenium-webdriver');
 import cf from '../../conf/conf';
 import sys from '../sys';
 import * as fs from 'fs';
@@ -11,30 +11,20 @@ import { dirname } from 'path';
 import { sync as createFolder } from 'mkdirp';
 
 export class WebdriverTest {
-    private browserstackUser: string;
-    private browserstackKey: string;
     private driver: webdriver.Driver;
-    private server: string;
     private currentControlFlow: Promise<any>;
-    private pendingEvaluation: (evaluation: (...args: any[]) => Promise<any>) => void;
 
     constructor(public capabilites: webdriver.Capabilities) {
-        this.capabilites['browserstack.user'] = this.capabilites['browserstack.user'] ||
-            process.env.BROWSERSTACK_USER ||
-            cf.DEFAULT_BROWSERSTACK_USER;
-
-        this.capabilites['browserstack.key'] = this.capabilites['browserstack.key'] ||
-            process.env.BROWSERSTACK_KEY ||
-            cf.DEFAULT_BROWSERSTACK_KEY;
-
-        this.capabilites['browserstack.local'] = 'true';
-
-        this.server = process.env.SELENIUM_SERVER || cf.DEFAULT_SELENIUM_SERVER;
+        if (process.env.BROWSERSTACK) {
+            this.setBrowserstackCapabilities();
+        }
 
         this.driver = new webdriver.Builder()
-            .usingServer(this.server)
+            .usingServer(process.env.WEBDRIVER_SERVER || cf.DEFAULT_WEBDRIVER_SERVER)
             .withCapabilities(this.capabilites)
             .build();
+
+        this.setDefaultScreenResolution();
     }
 
     public get(url: string): WebdriverTest {
@@ -45,12 +35,9 @@ export class WebdriverTest {
 
     public click(element: webdriver.Hash | string): WebdriverTest {
         this.currentControlFlow = this.currentControlFlow.then(() => {
-            if (typeof element === 'string') {
-                return this.driver.findElement(webdriver.By.id(element)).click();
-            }
-            else {
-                return this.driver.findElement(element).click();
-            }
+            return this.driver.findElement(
+                this.getLocatorOrHashFromHashOrIdString(element)
+            ).click();
         });
 
         return this;
@@ -58,12 +45,9 @@ export class WebdriverTest {
 
     public input(element: webdriver.Hash | string, keys: string): WebdriverTest {
         this.currentControlFlow = this.currentControlFlow.then(() => {
-            if (typeof element === 'string') {
-                return this.driver.findElement(webdriver.By.id(element)).click();
-            }
-            else {
-                return this.driver.findElement(element).sendKeys(keys);
-            }
+            return this.driver.findElement(
+                this.getLocatorOrHashFromHashOrIdString(element)
+            ).sendKeys(keys);
         });
 
         return this;
@@ -71,18 +55,10 @@ export class WebdriverTest {
 
     public wait(element: webdriver.Hash | string): WebdriverTest {
         this.currentControlFlow = this.currentControlFlow.then(() => {
-            this.driver.wait(() => {
-                if (typeof element === 'string') {
-                    return this.driver.isElementPresent(webdriver.By.id(element)).then(function() {
-                        return true
-                    });
-                }
-                else {
-                    return this.driver.isElementPresent(element).then(function() {
-                        return true
-                    });
-                }
-            }, cf.WEBDRIVER_IDLE_TIME);
+            return this.driver.wait(
+                webdriver.until.elementLocated(this.getLocatorOrHashFromHashOrIdString(element)),
+                cf.WEBDRIVER_IDLE_TIME
+            );
         });
 
         return this;
@@ -116,5 +92,29 @@ export class WebdriverTest {
                 }
             });
         });
+    }
+
+    private getLocatorOrHashFromHashOrIdString(element: webdriver.Hash | string): webdriver.Hash | webdriver.Locator {
+        if (typeof element === 'string') {
+            return webdriver.By.id(element);
+        }
+        else {
+            return element;
+        }
+    }
+
+    private setBrowserstackCapabilities(): void {
+        this.capabilites['browserstack.user'] = this.capabilites['browserstack.user'] ||
+            process.env.BROWSERSTACK_USER;
+
+        this.capabilites['browserstack.key'] = this.capabilites['browserstack.key'] ||
+            process.env.BROWSERSTACK_KEY;
+
+        this.capabilites['browserstack.local'] = 'true';
+        this.capabilites['browserstack.debug'] = 'true';
+    }
+
+    private setDefaultScreenResolution(): void {
+        this.driver.manage().window().setSize(cf.DEFAULT_SCREEN_RESOLUTION.WIDTH, cf.DEFAULT_SCREEN_RESOLUTION.HEIGHT);
     }
 }

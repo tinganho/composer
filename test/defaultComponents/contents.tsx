@@ -48,15 +48,15 @@ interface TodoItemProps {
     description: string;
 }
 
-interface TodoItemStyleComponents extends Radium.Style {
-    Container: Radium.StyleDeclaration;
-    Title: Radium.StyleDeclaration;
-    Description: Radium.StyleDeclaration;
-    Link: Radium.StyleDeclaration;
+interface TodoListItemStyles extends Radium.Style {
+    container: Radium.StyleDeclaration;
+    title: Radium.StyleDeclaration;
+    description: Radium.StyleDeclaration;
+    link: Radium.StyleDeclaration;
 }
 
-const TodoItemStyle: TodoItemStyleComponents = {
-    Container: {
+const todoListItemStyles: TodoListItemStyles = {
+    container: {
         position: 'relative',
         backgroundColor: '#333',
         listStyle: 'none',
@@ -64,16 +64,16 @@ const TodoItemStyle: TodoItemStyleComponents = {
         cursor: 'pointer',
         overflow: 'hidden',
     },
-    Title: {
+    title: {
         color: '#fff',
         fontFamily: 'Helvetica Neue',
         fontSize: '12px',
     },
-    Description: {
+    description: {
         color: '#fff',
         fontFamily: 'Helvetica Neue',
     },
-    Link: {
+    link: {
         padding: '20px',
         overflow: 'hidden',
         display: 'block',
@@ -86,11 +86,11 @@ class TodoListItem extends ComposerContent<TodoItemProps, {}> {
 
     public render() {
         return (
-            <li style={[TodoItemStyle.Container]}>
+            <li style={[todoListItemStyles.container]}>
                 <div className='todo-list-item' id={`todo-list-item-${this.props.id}`}>
-                    <Link to='/todo' style={[TodoItemStyle.Link]}>
-                        <h1 style={[TodoItemStyle.Title]}>{this.props.title}</h1>
-                        <p style={[TodoItemStyle.Description]}>{this.props.description}</p>
+                    <Link to='/todo' style={[todoListItemStyles.link]}>
+                        <h1 style={[todoListItemStyles.title]}>{this.props.title}</h1>
+                        <p style={[todoListItemStyles.description]}>{this.props.description}</p>
                     </Link>
                 </div>
             </li>
@@ -102,12 +102,12 @@ interface TodoListProps {
     list: TodoItemProps[];
 }
 
-interface TodoListStyleComponents extends Radium.Style {
-    List: Radium.StyleDeclaration;
+interface TodoListStyles extends Radium.Style {
+    list: Radium.StyleDeclaration;
 }
 
-const TodoListStyle: TodoListStyleComponents = {
-    List: {
+const todoListStyle: TodoListStyles = {
+    list: {
         width: '400px',
         margin: '0 auto',
     }
@@ -149,7 +149,7 @@ export class TodoList extends ComposerContent<TodoListProps, {}> {
     public render() {
         return (
             <div className='TodoList'>
-                <ul style={[TodoListStyle.List]}>
+                <ul style={[todoListStyle.list]}>
                     {this.props.list.map(todo =>{
                         return <TodoListItem key={todo.id} id={todo.id} title={todo.title} description={todo.description}/>
                     })}
@@ -159,8 +159,21 @@ export class TodoList extends ComposerContent<TodoListProps, {}> {
     }
 }
 
+interface TodoStyles extends Radium.Style {
+    container: Radium.StyleDeclaration;
+}
+
+const todoStyles: TodoStyles = {
+    container: {
+        width: '400px',
+        height: '400px',
+        margin: '0 auto',
+        backgroundColor: '#999',
+    }
+}
+
 @Radium
-export class TodoItem extends ComposerContent<TodoItemProps, {}> {
+export class Todo extends ComposerContent<TodoItemProps, {}> {
     public mixins = [PureRenderMixin];
 
     static fetch(): Promise<TodoItemProps> {
@@ -177,7 +190,7 @@ export class TodoItem extends ComposerContent<TodoItemProps, {}> {
 
     public render() {
         return (
-            <div className='todo' id={`todo-${this.props.id}`}></div>
+            <div className='todo' id={`todo-${this.props.id}`} style={[todoStyles.container]}></div>
         );
     }
 }

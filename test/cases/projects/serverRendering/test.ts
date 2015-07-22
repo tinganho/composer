@@ -12,7 +12,7 @@ export function test(d: BrowserDirectives): BrowserDirectives {
         },
         '/todo': page => {
             page.hasLayout(d.useDefaultLayout(), {
-                Body: d.useDefaultContent('TodoItem'),
+                Body: d.useDefaultContent('Todo'),
             })
             .end();
         }

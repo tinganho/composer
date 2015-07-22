@@ -7,7 +7,7 @@
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 /// <reference path='../../typings/image-diff/image-diff.d.ts'/>
 /// <reference path='../../typings/rimraf/rimraf.d.ts'/>
-/// <reference path='../../typings/browserstack-webdriver/browserstack-webdriver.d.ts'/>
+/// <reference path='../../typings/selenium-webdriver/selenium-webdriver.d.ts'/>
 /// <reference path='../client/declarations.d.ts'/>
 
 import { CommandLineOptions, Map } from './types';
@@ -154,8 +154,8 @@ export default class HtmlRunner {
                                 printDiagnostic(Diagnostics.Stop_the_server_by_exiting_the_session_CTRL_plus_C);
                             }
                             else {
-                                self.testWithHeadlessWebBrowser(app, serverComposer, fileName, browserDirectives, () => {
-                                    Debug.debug(`Test ${folderName} is done.`)
+                                self.testWithHeadlessWebBrowser(app, serverComposer, folderName, browserDirectives, () => {
+                                    Debug.debug(`Finished testing ${folderName}.`);
                                     done();
                                 });
                             }
@@ -173,6 +173,8 @@ export default class HtmlRunner {
         browserDirectives: BrowserDirectives,
         callback: () => void) {
 
+        Debug.debug(`Testing ${folderName}.`);
+
         let resultFilePath = path.join(this.root, `test/baselines/local/${folderName}.png`);
         let expectedFilePath = path.join(this.root, `test/baselines/reference/${folderName}.png`);
         let diffFilePath = path.join(this.root, `test/baselines/diff/${folderName}.png`);
@@ -181,9 +183,10 @@ export default class HtmlRunner {
             browserName: 'chrome',
             os: 'OS X',
             os_version: 'Yosemite',
-            resolution: `${cf.SCREEN_RESOLUTION.WIDTH}x${cf.SCREEN_RESOLUTION.HEIGHT}`
+            resolution: `${cf.DEFAULT_SCREEN_RESOLUTION.WIDTH}x${cf.DEFAULT_SCREEN_RESOLUTION.HEIGHT}`
         });
-        webdriverTest.get(`http://${cf.HOST}:${cf.PORT}${initialRoute}`);
+        webdriverTest.get(`http://${cf.HOST}:${cf.PORT}${initialRoute}`)
+            .wait({ css : 'html' })
 
         let browserActions = browserDirectives.useBrowserActions ?
             browserDirectives.useBrowserActions(webdriverTest) :
