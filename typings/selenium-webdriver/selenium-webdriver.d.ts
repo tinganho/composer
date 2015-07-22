@@ -18,17 +18,43 @@ declare module 'selenium-webdriver' {
         [capability: string]: any;
     }
 
-    export interface Element {
-
-    }
-
     class Locator {}
+
+    interface Id {
+        ELEMENT: string;
+    }
 
     export type ElementQuery<T> = Hash | Locator | Condition<T>;
 
     class WebElement {
+        public static equals(a: WebElement, b: WebElement): Promise<boolean>;
+        public static Id: Id;
+        public static ELEMENT_KEY: string;
+
+        constructor(driver: WebDriver, id: string);
+
+        public clear(): Promise<void>;
         public click(): Promise<void>;
+        public findElement(locator: Locator | Hash): WebElement;
+        public findElements(locator: Locator | Hash): Promise<WebElement[]>;
+        public getAttribute(attributeName: string): Promise<string>;
+        public getCssValue(cssStyleProperty: string): Promise<string>;
+        public getDriver(): WebDriver;
+        public getId(): Promise<Object>;
+        public getInnerHtml(): Promise<string>;
+        public getLocation(): Promise<Position>;
+        public getOuterHtml(): Promise<string>;
+        public getRawId(): Promise<string>;
+        public getSize(): Promise<Size>;
+        public getTagName(): Promise<string>;
+        public getText(): Promise<string>;
+        public isDisplayed(): Promise<boolean>;
+        public isElementPresent(): Promise<boolean>;
+        public isEnabled(): Promise<boolean>;
+        public isSelected(): Promise<boolean>;
         public sendKeys(keys: string): Promise<void>;
+        public serialize(): Id;
+        public submit(): Promise<void>;
     }
 
     interface Cookie {
@@ -61,12 +87,33 @@ declare module 'selenium-webdriver' {
         height: number;
     }
 
+    interface Speed {
+        xspeed: number;
+        yspeed: number;
+    }
+
     class Window {
         getPosition(): Promise<Position>;
         setPosition(x: number, y: number): Promise<void>;
         getSize(): Promise<Size>;
         setSize(width: number, height: number): Promise<void>;
         maximize(): Promise<void>;
+    }
+
+    class TouchSequence {
+        constructor(driver: WebDriver);
+
+        public doubleTap(element: WebElement): TouchSequence;
+        public flick(speed: Speed): TouchSequence;
+        public flickElement(element: WebElement, offset: Position, speed: Speed): TouchSequence;
+        public longPress(element: WebElement): TouchSequence;
+        public move(location: Position): TouchSequence;
+        public perform(): Promise<void>;
+        public release(location: Position): TouchSequence;
+        public scroll(offset: Position): TouchSequence;
+        public scrollFromElement(element: WebElement, offset: Position): TouchSequence;
+        public tap(element: WebElement): TouchSequence;
+        public tapAndHold(element: WebElement): TouchSequence;
     }
 
     class Options {
@@ -78,7 +125,7 @@ declare module 'selenium-webdriver' {
         public window(): Window;
     }
 
-    class Driver {
+    class WebDriver {
         public get(url: string): Promise<void>;
         public getTitle(): Promise<string>;
         public takeScreenshot(): Promise<string>;
@@ -90,7 +137,12 @@ declare module 'selenium-webdriver' {
     }
 
     class Alert {
+        constructor(driver: WebDriver, text: string);
 
+        public accept(): Promise<void>;
+        public dismiss(): Promise<void>;
+        public getText(): Promise<string>;
+        public sendKeys(text: string): Promise<void>;
     }
 
     class Condition<T> {
@@ -101,7 +153,7 @@ declare module 'selenium-webdriver' {
     export class Builder {
         public usingServer(url: string): Builder;
         public withCapabilities(capabilities: Capabilities): Builder;
-        public build(): Driver;
+        public build(): WebDriver;
     }
 
     class _By {
