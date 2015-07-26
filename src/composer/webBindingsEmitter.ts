@@ -35,9 +35,9 @@ export interface PageEmitInfo {
     contents: ContentComponentInfo[];
 }
 
-export function emitComposer(
+export function emitBindings(
     appName: string,
-    clientRouterPath: string,
+    output: string,
     imports: ComponentInfo[],
     pageInfos: PageEmitInfo[],
     writer: EmitTextWriter,
@@ -140,8 +140,7 @@ export function emitComposer(
     }
 
     function writeRouterInit() {
-        write(`${appName}.Router = new Composer.Router('${appName}', ${appName}.RoutingTable, ${appName}.Component);`);
-        write(`window.ComposerRouter = ${appName}.Router`);
+        write(`${appName}.Router = window.__Router = new Router.default('${appName}', ${appName}.RoutingTable, ${appName}.Component);`);
         writeLine();
     }
 
@@ -173,14 +172,14 @@ export function emitComposer(
             write(', ');
         }
         writeQuote();
-        write(clientRouterPath);
+        write(output);
         writeQuote();
         write('], function(');
         for (let i = 0; i<imports.length; i++) {
             write(imports[i].className);
             write(', ');
         }
-        write('Composer');
+        write('Router');
         write(') {');
         writeLine();
     }
@@ -195,7 +194,7 @@ export function emitComposer(
             write(`var ${i.className} = require('${i.importPath}').${i.className};`);
             writeLine();
         }
-        write(`var Composer = require('${clientRouterPath}');`);
+        write(`var Router = require('${output}');`);
         writeLine();
     }
 

@@ -15,7 +15,7 @@ import imageDiff = require('image-diff');
 import logger = require('morgan');
 import { cf } from '../../conf/conf';
 import { ServerComposer, PlatformDetect } from '../composer/serverComposer';
-import { ModuleKind } from '../composer/webClientComposerEmitter';
+import { ModuleKind } from '../composer/webBindingsEmitter';
 import { ComposerDocument } from '../client/components';
 import React = require('react');
 import { sync as glob } from 'glob';
@@ -78,7 +78,7 @@ export default class HtmlRunner {
 
         let serverComposer = new ServerComposer({
             app,
-            clientComposerOutput: 'public/scripts/composer.js',
+            routerOutput: 'public/scripts/router.js',
             bindingsOutput: 'public/scripts/bindings.js',
             clientConfigurationPath: './client/*.js',
             rootPath: this.root,

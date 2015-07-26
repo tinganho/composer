@@ -45,13 +45,15 @@ interface LinkProps {
     children?: any;
 }
 
+declare let __Router: any;
+
 @Radium
 export class Link extends React.Component<LinkProps, {}> {
 
     public navigateTo(event: React.MouseEvent) {
         event.preventDefault();
 
-        ComposerRouter.navigateTo(this.props.to);
+        __Router.navigateTo(this.props.to);
     }
 
     public render() {

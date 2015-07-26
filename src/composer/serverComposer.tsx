@@ -14,7 +14,7 @@
 import { Component, createElement, MouseEvent } from 'react';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { Express, Request, Response } from 'express';
-import { PageEmitInfo, emitComposer, ModuleKind } from './webClientComposerEmitter';
+import { PageEmitInfo, emitBindings, ModuleKind } from './webBindingsEmitter';
 import { Debug, createTextWriter, printError } from '../core';
 import { Diagnostics } from '../diagnostics.generated';
 import { sys } from '../sys';
@@ -69,7 +69,7 @@ interface ComposerOptions {
     /**
      * Define the output file for client router.
      */
-    clientComposerOutput: string,
+    routerOutput: string,
 
     /**
      * Path to client configuration path.
@@ -202,7 +202,7 @@ export class ServerComposer {
             this.commandLineOptions = commandLineOptions;
         }
         this.options = options;
-        this.options.clientComposerOutput = this.options.clientComposerOutput;
+        this.options.routerOutput = this.options.routerOutput;
         this.options.bindingsOutput =this.options.bindingsOutput;
     }
 
@@ -262,9 +262,9 @@ export class ServerComposer {
     public emitBindings(): void {
         if (this.pageEmitInfos.length === this.pageCount) {
             let writer = createTextWriter(cf.DEFAULT_NEW_LINE);
-            emitComposer(
+            emitBindings(
                 this.options.appName,
-                this.options.clientComposerOutput,
+                this.options.routerOutput,
                 this.getAllImportPaths(this.pageEmitInfos),
                 this.pageEmitInfos,
                 writer,
@@ -293,7 +293,7 @@ export class ServerComposer {
         let routerSource = sys.readFile(path.join(__dirname, '../client/router.ts').replace('/built', ''));
         let moduleKind = this.moduleKindToTsModuleKind(this.options.moduleKind);
         let jsSource = ts.transpile(routerSource, { module: moduleKind });
-        sys.writeFile(path.join(this.options.rootPath, this.options.clientComposerOutput), jsSource)
+        sys.writeFile(path.join(this.options.rootPath, this.options.routerOutput), jsSource)
     }
 
     private getAllImportPaths(pageEmitInfos: PageEmitInfo[]): ComponentInfo[] {

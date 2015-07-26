@@ -11,7 +11,7 @@ import { dirname } from 'path';
 import { sync as createFolder } from 'mkdirp';
 
 export class WebdriverTest {
-    private driver: webdriver.Driver;
+    private driver: webdriver.WebDriver;
     private currentControlFlow: Promise<any>;
 
     constructor(public capabilites: webdriver.Capabilities) {
