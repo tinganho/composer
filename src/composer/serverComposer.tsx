@@ -1,18 +1,13 @@
 
 /// <reference path='../../typings/node/node.d.ts'/>
 /// <reference path='../../typings/express/express.d.ts'/>
-/// <reference path='../../typings/react/react.d.ts'/>
-/// <reference path='../../typings/react/react-jsx.d.ts'/>
-/// <reference path='../../typings/react/react-dom.d.ts'/>
 /// <reference path='../../typings/glob/glob.d.ts'/>
 /// <reference path='../../node_modules/typescript/bin/typescript.d.ts'/>
 /// <reference path='../client/router.d.ts'/>
-/// <reference path='../client/declarations.d.ts'/>
-/// <reference path='../client/components.d.ts'/>
+/// <reference path='../component/layerDeclarations.d.ts'/>
+/// <reference path='../component/layerComponents.d.ts'/>
 
-
-import { Component, createElement, MouseEvent } from 'react';
-import { renderToString, renderToStaticMarkup } from 'react-dom/server';
+import * as React from '../component/element';
 import { Express, Request, Response } from 'express';
 import { PageEmitInfo, emitBindings, ModuleKind } from './webBindingsEmitter';
 import { Debug, createTextWriter, printError } from '../core';
@@ -28,7 +23,7 @@ import {
     ComposerDocument,
     ComposerContent,
     ComposerComponent
-} from '../client/components';
+} from '../component/layerComponents';
 
 export interface Pages {
     [page: string]: (page: Page) => void;
@@ -43,15 +38,15 @@ export interface PlatformDetect {
     detect(req: Request): boolean;
 }
 
-export function isDeclaration<T extends PageLayerDeclaration, U extends typeof ComposerComponent>(decl: T | U): decl is T {
+export function isDeclaration<T extends PageLayerDeclaration, U extends new(props: any, children?: any) => ComposerComponent<any, any, any>>(decl: T | U): decl is T {
     if ((decl as T).importPath) {
         return true;
     }
     return false;
 }
 
-export function getClassName(c: typeof ComposerComponent): string {
-    return c.name === 'RadiumEnhancer' ? (c as any).__proto__.name : c.name;
+export function getClassName(c: new(props: any, children?: any) => ComposerComponent<any, any, any>): string {
+    return (c as any).name;
 }
 
 interface ComposerOptions {
@@ -496,10 +491,9 @@ export class Page {
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
         this.getContents(req, res, (contents, jsonScriptData) => {
             this.currentPlatform.documentProps.jsonScriptData = jsonScriptData;
-            let layoutHtml = renderToString(createElement(this.currentPlatform.layout.component, contents));
-            let documentHtml = renderToStaticMarkup(createElement(this.currentPlatform.document.component, this.currentPlatform.documentProps));
-            documentHtml = '<!DOCTYPE html>' + documentHtml.replace('{{layout}}', layoutHtml);
-            res.send(documentHtml);
+            this.currentPlatform.documentProps.layout = new this.currentPlatform.layout.component(contents);
+            let document = new this.currentPlatform.document.component(this.currentPlatform.documentProps);
+            res.send('<!DOCTYPE html>' + document.toString());
         });
     }
 
@@ -512,12 +506,13 @@ export class Page {
 
         for (let region in contents) {
             numberOfContents++;
-            (function(region: string, ContentComponent: typeof ComposerContent) {
-                ContentComponent.fetch().then(result => {
-                    resultContents[region] = createElement(ContentComponent, result);
+            (function(region: string, ContentComponent: new(props: any, children?: any) => ComposerContent<any, any, any>) {
+                let contentComponent = new ContentComponent({}, null);
+                contentComponent.fetch(req).then(result => {
+                    resultContents[region] = React.createElement(ContentComponent, result, null);
                     resultJsonScriptData.push({
-                        id: `react-composer-content-json-${getClassName(contents[region].component).toLowerCase()}`,
-                        data: JSON.stringify(result)
+                        id: `composer-content-json-${getClassName(contents[region].component).toLowerCase()}`,
+                        data: result
                     });
 
                     finishedContentFetchings++;
@@ -526,9 +521,11 @@ export class Page {
                         next(resultContents, resultJsonScriptData);
                     }
                 }).catch(reason => {
-                    console.log(reason)
+                    console.log(reason.message);
+                    console.log(reason.stack);
+                    res.status(500).send(reason.message + '<br>' + reason.stack)
                 });
-            })(region, contents[region].component);
+            })(region, contents[region].component as any);
         }
     }
 }

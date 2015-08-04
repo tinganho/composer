@@ -1,8 +1,10 @@
 
 /// <reference path='./router.d.ts'/>
-/// <reference path='./components.d.ts'/>
+/// <reference path='../component/component.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
+import ReactMod = require('../component/element');
+let React: typeof ReactMod = require('/src/component/element.js');
 
 interface Map {
    [entity: string]: string;
@@ -38,7 +40,7 @@ export class Router {
 
         this.checkRouteAndRenderIfMatch();
 
-        if(this.hasPushState) {
+        if (this.hasPushState) {
             window.onpopstate = () => {
                 this.checkRouteAndRenderIfMatch();
             }
@@ -70,17 +72,14 @@ export class Router {
 
     private loadContentFromJsonScripts(placeholderContents: Contents, page: Page): void {
         for (let content of page.contents) {
-            let jsonElement = document.getElementById(`react-composer-content-json-${content.className.toLowerCase()}`);
+            let jsonElement = document.getElementById(`composer-content-json-${content.className.toLowerCase()}`);
             if (!jsonElement) {
                 console.error(
 `Could not find JSON file ${content.className}. Are you sure
-this component is properly named?`)
+this component is properly named?`);
             }
             try {
-                placeholderContents[content.region] = React.createElement(
-                    (window as any)[this.appName].Component.Content[content.className],
-                    jsonElement.innerText !== '' ? JSON.parse(jsonElement.innerText) : {}
-                );
+                placeholderContents[content.region] = React.createElement((window as any)[this.appName].Component.Content[content.className], jsonElement.innerText !== '' ? JSON.parse(jsonElement.innerText).data : {}, null);
             }
             catch(err) {
                 console.error(`Could not parse JSON for ${content.className}.`)
@@ -107,10 +106,7 @@ this component is properly named?`)
                         component.fetch()
                             .then((result: any) => {
                                 try {
-                                    placeholderContents[content.region] = React.createElement(
-                                        (window as any)[this.appName].Component.Content[content.className],
-                                        result
-                                    );
+                                    placeholderContents[content.region] = React.createElement((window as any)[this.appName].Component.Content[content.className], result, null);
                                 }
                                 catch(err) {
                                     console.error(`Could not parse JSON for ${content.className}.`)
@@ -132,11 +128,8 @@ this component is properly named?`)
     }
 
     private renderLayoutAndContents(page: Page, contents: Contents) {
-        let layoutElement = React.createElement(this.pageComponents.Layout[page.layout.className], contents);
-        React.render(
-            layoutElement,
-            document.body
-        );
+        let layoutElement = new (this as any).pageComponents.Layout[page.layout.className](contents);
+        layoutElement.bindDOM();
     }
 
     private renderPage(page: Page): void {
@@ -146,12 +139,13 @@ this component is properly named?`)
             this.renderLayoutAndContents(page, contents);
         }
         else {
+            // `contents` are passed and set by reference.
             this.loadContentsFromNetwork(contents, page)
                 .then(() => {
                      this.renderLayoutAndContents(page, contents);
                 })
                 .catch((err: Error) => {
-                    console.warn('Could not load contents from network.')
+                    console.warn('Could not load contents from network.');
                 });
         }
 

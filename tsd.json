@@ -32,29 +32,17 @@
     "mime/mime.d.ts": {
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
     },
-    "react/react-jsx.d.ts": {
-      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
-    },
     "morgan/morgan.d.ts": {
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
-    },
-    "gulp/gulp.d.ts": {
-      "commit": "304a25197990aeabf8e9fd030ad927ed011b9e83"
-    },
-    "gulp-rename/gulp-rename.d.ts": {
-      "commit": "304a25197990aeabf8e9fd030ad927ed011b9e83"
     },
     "es6-promise/es6-promise.d.ts": {
       "commit": "be03157bace6e6465e63f13073d7b68e8ea1303c"
     },
-    "react/react-addons.d.ts": {
-      "commit": "0fff32b558aa91ba24cfca5479aba02e4ef2fafe"
-    },
-    "rimraf/rimraf.d.ts": {
-      "commit": "db475daba23206e8cd0ac04d47f0764f4a62f7da"
-    },
     "mkdirp/mkdirp.d.ts": {
       "commit": "8f51d25ad3523cd01f2d92e343247852f6b70dff"
+    },
+    "rimraf/rimraf.d.ts": {
+      "commit": "b0d313e1b10be5cdbd47f8bdadd888f066a626bd"
     }
   }
 }

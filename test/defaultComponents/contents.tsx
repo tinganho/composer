@@ -1,34 +1,23 @@
 
-/// <reference path='../../typings/react/react.d.ts'/>
-/// <reference path='../../typings/react/react-jsx.d.ts'/>
-/// <reference path='../../typings/radium/radium.d.ts'/>
 /// <reference path='../../typings/platform/platform.d.ts' />
-/// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
+/// <reference path='../../src/component/component.d.ts' />
 
-let __r = require;
-import { ComposerContent, Link } from '../../src/client/components';
-import ReactType = require('react');
-let React: typeof ReactType = inClient ? (window as any).React : __r('react');
-import PureRenderMixinType = require('react-addons-pure-render-mixin');
-let PureRenderMixin: typeof PureRenderMixinType = inClient ? require('/public/scripts/vendor/react-with-addons.js') : __r('react-addons-pure-render-mixin');
-import RadiumType = require('radium');
-let Radium: typeof RadiumType = inClient ? (window as any).Radium : __r('radium');
+import * as React from '../../src/component/element';
+import { ComposerContent, ComposerComponent, Link } from '../../src/component/layerComponents';
 
-interface NavigationBarProps {
+interface NavigationBarProps extends Props {
     a: string;
     b: string;
 }
 
-export class NavigationBar extends ComposerContent<NavigationBarProps, {}> {
-    public mixins = [PureRenderMixin];
+interface NavigationBarElements extends Elements {
 
-    public componentDidMount() {
-        // console.log(React.findDOMNode(this));
-    }
+}
 
-    static fetch(): Promise<NavigationBarProps> {
+export class NavigationBar extends ComposerContent<NavigationBarProps, {}, NavigationBarElements> {
+    public fetch(): Promise<NavigationBarProps> {
         let promise = new Promise((resolve, reject) => {
-            resolve({a: 'a', b: 'b'})
+            resolve({ a: 'a', b: 'b' });
         });
 
         return promise;
@@ -36,61 +25,28 @@ export class NavigationBar extends ComposerContent<NavigationBarProps, {}> {
 
     public render() {
         return (
-            <div className='NavigationBar'>{this.props.a + this.props.b}</div>
+            <div class='NavigationBar'>{this.props.a + this.props.b}</div>
         );
     }
 }
 
-interface TodoItemProps {
-    key?: number;
-    id?: number;
+interface TodoItemProps extends Props {
     title: string;
     description: string;
 }
 
-interface TodoListItemStyles extends Radium.Style {
-    container: Radium.StyleDeclaration;
-    title: Radium.StyleDeclaration;
-    description: Radium.StyleDeclaration;
-    link: Radium.StyleDeclaration;
+interface TodoListItemElements extends Elements {
+
 }
 
-const todoListItemStyles: TodoListItemStyles = {
-    container: {
-        position: 'relative',
-        backgroundColor: '#333',
-        listStyle: 'none',
-        marginBottom: '20px',
-        cursor: 'pointer',
-        overflow: 'hidden',
-    },
-    title: {
-        color: '#fff',
-        fontFamily: 'Helvetica Neue',
-        fontSize: '12px',
-    },
-    description: {
-        color: '#fff',
-        fontFamily: 'Helvetica Neue',
-    },
-    link: {
-        padding: '20px',
-        overflow: 'hidden',
-        display: 'block',
-    }
-}
-
-@Radium
-class TodoListItem extends ComposerContent<TodoItemProps, {}> {
-    public mixins = [PureRenderMixin];
-
+class TodoListItem extends ComposerComponent<TodoItemProps, {}, TodoListItemElements> {
     public render() {
         return (
-            <li style={[todoListItemStyles.container]}>
-                <div className='todo-list-item' id={`todo-list-item-${this.props.id}`}>
-                    <Link to='/todo' style={[todoListItemStyles.link]}>
-                        <h1 style={[todoListItemStyles.title]}>{this.props.title}</h1>
-                        <p style={[todoListItemStyles.description]}>{this.props.description}</p>
+            <li>
+                <div class={`todo-list-item-${this.props.id}`}>
+                    <Link to='/todo'>
+                        <h1>{this.props.title}</h1>
+                        <p>{this.props.description}</p>
                     </Link>
                 </div>
             </li>
@@ -98,27 +54,17 @@ class TodoListItem extends ComposerContent<TodoItemProps, {}> {
     }
 }
 
-interface TodoListProps {
+interface TodoListProps extends Props {
     list: TodoItemProps[];
 }
 
-interface TodoListStyles extends Radium.Style {
-    list: Radium.StyleDeclaration;
+interface TodoListElements extends Elements {
+
 }
 
-const todoListStyle: TodoListStyles = {
-    list: {
-        width: '400px',
-        margin: '0 auto',
-    }
-}
-
-@Radium
-export class TodoList extends ComposerContent<TodoListProps, {}> {
-    public mixins = [PureRenderMixin];
-
-    static fetch(): Promise<TodoListProps> {
-        let promise = new Promise((resolve, reject) => {
+export class TodoList extends ComposerContent<TodoListProps, {}, TodoListElements> {
+    public fetch(): Promise<TodoListProps> {
+        let promise = new Promise<TodoListProps>((resolve, reject) => {
             resolve({ list: [
                 {
                     id: 1,
@@ -148,8 +94,8 @@ export class TodoList extends ComposerContent<TodoListProps, {}> {
 
     public render() {
         return (
-            <div className='TodoList'>
-                <ul style={[todoListStyle.list]}>
+            <div class='TodoList'>
+                <ul>
                     {this.props.list.map(todo =>{
                         return <TodoListItem key={todo.id} id={todo.id} title={todo.title} description={todo.description}/>
                     })}
@@ -159,24 +105,12 @@ export class TodoList extends ComposerContent<TodoListProps, {}> {
     }
 }
 
-interface TodoStyles extends Radium.Style {
-    container: Radium.StyleDeclaration;
+interface TodoItemElements extends Elements {
+
 }
 
-const todoStyles: TodoStyles = {
-    container: {
-        width: '400px',
-        height: '400px',
-        margin: '0 auto',
-        backgroundColor: '#999',
-    }
-}
-
-@Radium
-export class Todo extends ComposerContent<TodoItemProps, {}> {
-    public mixins = [PureRenderMixin];
-
-    static fetch(): Promise<TodoItemProps> {
+export class Todo extends ComposerContent<TodoItemProps, {}, TodoItemElements> {
+    public fetch(): Promise<TodoItemProps> {
         let promise = new Promise<TodoItemProps>((resolve, reject) => {
             resolve({
                 id: 1,
@@ -190,7 +124,7 @@ export class Todo extends ComposerContent<TodoItemProps, {}> {
 
     public render() {
         return (
-            <div className='todo' id={`todo-${this.props.id}`} style={[todoStyles.container]}></div>
+            <div class='todo' id={`todo-${this.props.id}`}></div>
         );
     }
 }

@@ -2,7 +2,6 @@
 {
     "files.trimTrailingWhitespace": true,
     "files.exclude": {
-		"**/.git": true,
-		"public/scripts/vendor/**": true
+		"**/.git": true
 	}
 }

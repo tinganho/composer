@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="./vendor/mocha.css">
+        <script src="./vendor/mocha.js"></script>
+        <script src="./vendor/system.js"></script>
+    </head>
+    <body>
+        <div id="mocha"></div>
+        <script>
+            mocha.setup('bdd');
+
+            System.config({
+                defaultJSExtensions: true,
+                map: {
+                    chai: './vendor/chai.js'
+                }
+            });
+
+            System.import('./runner.js').then(function() {
+                mocha.checkLeaks();
+                mocha.run();
+            });
+        </script>
+        <div id="test"></div>
+    </body>
+</html>

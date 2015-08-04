@@ -14,9 +14,10 @@
     "gulp": "^3.9.0",
     "gulp-generate-ts-diagnostics": "^0.1.15",
     "gulp-rename": "^1.2.2",
+    "gulp-rimraf": "^0.1.1",
+    "image-diff": "^1.2.0",
     "mocha": "^2.2.5",
     "radium": "^0.13.2",
-    "image-diff": "^1.2.0",
     "source-map-support": "^0.3.2",
     "typescript-register": "^1.1.0"
   },

@@ -1,14 +1,12 @@
 
 /// <reference path='../../typings/mocha/mocha.d.ts'/>
 /// <reference path='../../typings/express/express.d.ts'/>
-/// <reference path='../../typings/react/react.d.ts'/>
-/// <reference path='../../typings/react/react-jsx.d.ts'/>
 /// <reference path='../../typings/morgan/morgan.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 /// <reference path='../../typings/image-diff/image-diff.d.ts'/>
 /// <reference path='../../typings/rimraf/rimraf.d.ts'/>
 /// <reference path='../../typings/selenium-webdriver/selenium-webdriver.d.ts'/>
-/// <reference path='../client/declarations.d.ts'/>
+/// <reference path='../component/layerDeclarations.d.ts'/>
 
 import { CommandLineOptions, Map } from './types';
 import imageDiff = require('image-diff');
@@ -16,8 +14,7 @@ import logger = require('morgan');
 import { cf } from '../../conf/conf';
 import { ServerComposer, PlatformDetect } from '../composer/serverComposer';
 import { ModuleKind } from '../composer/webBindingsEmitter';
-import { ComposerDocument } from '../client/components';
-import React = require('react');
+import { ComposerDocument } from '../component/layerComponents';
 import { sync as glob } from 'glob';
 import * as path from 'path';
 import express = require('express');
@@ -70,7 +67,7 @@ export default class HtmlRunner {
         if (!folderName) {
             Debug.fail(Diagnostics.Could_not_get_folder_name_from_0, folderPath);
         }
-        app.use('/src/client', express.static(path.join(this.root, 'built/src/client')));
+        app.use('/src', express.static(path.join(this.root, 'built/src')));
         app.use('/test/defaultComponents', express.static(path.join(this.root, 'built/test/defaultComponents')));
         app.use('/public', express.static(path.join(this.root, 'public')));
         app.use('/' + componentFolderPath, express.static(path.join('built', folderPath, 'components')));
@@ -96,7 +93,7 @@ export default class HtmlRunner {
             },
             useDefaultContent: function(content: string): ContentDeclaration {
                 return {
-                    component: (contentComponents as any)[content] as typeof ComposerContent,
+                    component: (contentComponents as any)[content] as new(props: any, children: any) => ComposerContent<any, any, any>,
                     importPath: 'test/defaultComponents/contents',
                 }
             },

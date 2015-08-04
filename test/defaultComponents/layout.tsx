@@ -1,55 +1,28 @@
 
+/// <reference path='../../typings/platform/platform.d.ts' />
+/// <reference path='../../src/component/component.d.ts' />
 
-/// <reference path='../../typings/react/react.d.ts'/>
-/// <reference path='../../typings/react/react-jsx.d.ts'/>
-/// <reference path='../../typings/radium/radium.d.ts'/>
-/// <reference path='../../typings/react-addons-pure-render-mixin/react-addons-pure-render-mixin.d.ts'/>
-/// <reference path='../../src/client/declarations.d.ts' />
+import * as React from '../../src/component/element';
+import { ComposerLayout, Link } from '../../src/component/layerComponents';
 
-let __r = require;
-import { ComposerLayout, ComposerContent } from '../../src/client/components';
-import { NavigationBar, TodoList } from './Contents';
-import ReactType = require('react');
-let React: typeof ReactType = inClient ? (window as any).React : __r('react');
-import RadiumType = require('radium');
-let Radium: typeof RadiumType = inClient ? (window as any).Radium : __r('radium');
-import PureRenderMixinType = require('react-addons-pure-render-mixin');
-let PureRenderMixin: typeof PureRenderMixinType = inClient ? require('/public/scripts/vendor/react-with-addons') : __r('react-addons-pure-render-mixin');
-
-interface Regions {
-    TopBar: JSX.Element;
-    Body: JSX.Element;
+interface Regions extends Props {
+    TopBar: new(props: any, children: any) => ComposerContent<any, any, any>;
+    Body: new(props: any, children: any) => ComposerContent<any, any, any>;
 }
 
-@Radium
-export class Layout extends ComposerLayout<Regions, {}> {
-    public static className = 'Layout';
-
-    public mixins = [PureRenderMixin];
+export class Layout extends ComposerLayout<Regions, {}, Elements> {
+    public id = 'composer-layout';
 
     public render() {
         return (
             <div id='layout'>
-                <header className='TopBar'>
+                <header class='TopBar'>
                     {this.props.TopBar}
                 </header>
-                <div className='Body'>
+                <div class='Body'>
                     {this.props.Body}
                 </div>
             </div>
         );
-    }
-}
-
-interface StyleRules extends Radium.Style {
-    container: Radium.StyleDeclaration;
-}
-
-var layoutStyles: StyleRules = {
-    container: {
-        backgroundColor: '#fff',
-        ':hover': {
-            background: '#444'
-        }
     }
 }

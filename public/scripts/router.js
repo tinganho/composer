@@ -1,6 +1,7 @@
 /// <reference path='./router.d.ts'/>
-/// <reference path='./components.d.ts'/>
+/// <reference path='../component/component.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
+var React = require('/src/component/element.js');
 var Router = (function () {
     function Router(appName, pages, pageComponents) {
         var _this = this;
@@ -54,12 +55,12 @@ var Router = (function () {
     Router.prototype.loadContentFromJsonScripts = function (placeholderContents, page) {
         for (var _i = 0, _a = page.contents; _i < _a.length; _i++) {
             var content = _a[_i];
-            var jsonElement = document.getElementById("react-composer-content-json-" + content.className.toLowerCase());
+            var jsonElement = document.getElementById("composer-content-json-" + content.className.toLowerCase());
             if (!jsonElement) {
                 console.error("Could not find JSON file " + content.className + ". Are you sure\nthis component is properly named?");
             }
             try {
-                placeholderContents[content.region] = React.createElement(window[this.appName].Component.Content[content.className], jsonElement.innerText !== '' ? JSON.parse(jsonElement.innerText) : {});
+                placeholderContents[content.region] = React.createElement(window[this.appName].Component.Content[content.className], jsonElement.innerText !== '' ? JSON.parse(jsonElement.innerText).data : {}, null);
             }
             catch (err) {
                 console.error("Could not parse JSON for " + content.className + ".");
@@ -87,7 +88,7 @@ var Router = (function () {
                         component.fetch()
                             .then(function (result) {
                             try {
-                                placeholderContents[content.region] = React.createElement(window[_this.appName].Component.Content[content.className], result);
+                                placeholderContents[content.region] = React.createElement(window[_this.appName].Component.Content[content.className], result, null);
                             }
                             catch (err) {
                                 console.error("Could not parse JSON for " + content.className + ".");
@@ -107,8 +108,8 @@ var Router = (function () {
         return promise;
     };
     Router.prototype.renderLayoutAndContents = function (page, contents) {
-        var layoutElement = React.createElement(this.pageComponents.Layout[page.layout.className], contents);
-        React.render(layoutElement, document.body);
+        var layoutElement = new this.pageComponents.Layout[page.layout.className](contents);
+        layoutElement.bindDOM();
     };
     Router.prototype.renderPage = function (page) {
         var _this = this;
@@ -118,6 +119,7 @@ var Router = (function () {
             this.renderLayoutAndContents(page, contents);
         }
         else {
+            // `contents` are passed and set by reference.
             this.loadContentsFromNetwork(contents, page)
                 .then(function () {
                 _this.renderLayoutAndContents(page, contents);
