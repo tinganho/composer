@@ -3,9 +3,11 @@
 (global as any).inClient = false;
 
 import ImageTestRunner from './imageTestRunner';
+import { parseCommandLineOptions } from './commandLineParser';
 
 declare function require(path: string): any;
 require('source-map-support').install();
 require('es6-promise').polyfill();
 
-new ImageTestRunner(process.argv).runTests();
+let options = parseCommandLineOptions(process.argv);
+new ImageTestRunner(options).runTests();

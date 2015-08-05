@@ -2,7 +2,7 @@
 declare var DebugLevel: number;
 declare var __dirname: any;
 
-export namespace Debug {
+export namespace Logger {
 
     var styles = {
 
@@ -73,12 +73,14 @@ export namespace Debug {
     }
 
     let levelToCategoryString = {
-        0: color('Error', 'red'),
-        1: color('Warning', 'yellow'),
-        2: color('Log', 'magenta'),
+        0: color('Message', 'green'),
+        1: color('Error', 'red'),
+        2: color('Warning', 'yellow'),
+        3: color('Log', 'magenta'),
     }
 
     const enum Type {
+        Message,
         Error,
         Warning,
         Log,
@@ -88,24 +90,29 @@ export namespace Debug {
         level = l;
     }
 
-    function print(type: Type, message: string, arg0?: string, arg1?: string, arg2?: string) {
-        message = message
+    function interpolateMessage( message: string, arg0?: string, arg1?: string, arg2?: string): string {
+        return  message = message
             .replace('{0}', arg0)
             .replace('{1}', arg1)
             .replace('{2}', arg2);
-
-        if (type !== Type.Error) {
-            let category = (levelToCategoryString as any)[level];
-            console.log(`[ ${category} ] - ${message}`);
-        }
-        else {
-            throw Error(message);
-        }
     }
 
-    export function error(message: string, arg0?: string, arg1?: string, arg2?: string) {
+    function print(type: Type, message: string, arg0?: string, arg1?: string, arg2?: string) {
+        message = interpolateMessage(message, arg0, arg1, arg2);
+
+        let category = (levelToCategoryString as any)[level];
+        console.log(`[ ${category} ] - ${message}`);
+    }
+
+    export function error(message: string, arg0?: string | Error, arg1?: string, arg2?: string) {
         if (level >= Level.Errors) {
-            print(Type.Error, message, arg0, arg1, arg2);
+            if (typeof arg0 === 'string') {
+                throw Error(interpolateMessage(message, arg0, arg1, arg2));
+            }
+            else {
+                print(Type.Error, message);
+                throw arg0;
+            }
         }
     }
 
@@ -120,6 +127,22 @@ export namespace Debug {
             print(Type.Log, message, arg0, arg1, arg2);
         }
     }
+
+    export function debug(text: string, name?: string) {
+        let debugText = `----------- ${name || 'DEBUG'} -------------`;
+        console.log(debugText);
+        console.log(text);
+        console.log(debugText);
+    }
+
+    export function printError(err: Error) {
+        console.log(err.message);
+        console.log((err as any).stack);
+    }
+
+    export function prompt(message: string) {
+        print(Type.Message, message);
+    }
 }
 
-export default Debug;
+export default Logger;

@@ -1,8 +1,5 @@
 
-import { DiagnosticMessage } from '../diagnostics.generated';
 import { Map } from '../types';
-
-export { DiagnosticMessage };
 
 export * from '../types';
 
@@ -11,7 +8,6 @@ export interface CommandLineOption {
     type: string | Map<number>;
     isFilePath?: boolean;
     shortName?: string;
-    error?: DiagnosticMessage;
     experimental?: boolean;
 }
 

@@ -4,13 +4,8 @@
 import glob = require('glob');
 import { CharacterCodes, CommandLineOptions, CommandLineOption} from './types';
 import { Map } from '../types';
-import { Diagnostics, DiagnosticMessage} from '../diagnostics.generated';
-import { createDiagnostic, Debug, includes, hasProperty } from '../core';
-
-export interface ParsedCommandLine {
-    options: CommandLineOptions;
-    errors: DiagnosticMessage[];
-}
+import { includes, hasProperty } from '../core';
+import Debug from '../debug';
 
 let optionDeclarations: CommandLineOption[] = [
     {
@@ -34,10 +29,9 @@ let optionDeclarations: CommandLineOption[] = [
     },
 ];
 
-export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLine {
+export function parseCommandLineOptions(commandLine: string[]): CommandLineOptions {
     let options: CommandLineOptions = {};
     let testFiles: string[];
-    let errors: DiagnosticMessage[] = [];
     let shortOptionNames: Map<string> = {};
     let optionNameMap: Map<CommandLineOption> = {};
 
@@ -50,12 +44,10 @@ export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLin
 
     parseStrings(commandLine);
 
-    return {
-        options,
-        errors,
-    }
+    return options;
 
     function parseStrings(args: string[]) {
+        console.log(args)
         let i = 0;
         while (i < args.length) {
             let s = args[i++];
@@ -72,7 +64,7 @@ export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLin
 
                     // Check to see if no argument was provided (e.g. '--help' is the last command-line argument).
                     if (!args[i] && opt.type !== 'boolean') {
-                        errors.push(createDiagnostic(Diagnostics.Compiler_option_0_expects_an_argument, opt.name));
+                        Debug.error('Compiler option {0} expects an argument.', opt.name);
                     }
 
                     switch (opt.type) {
@@ -88,13 +80,8 @@ export function parseCommandLineOptions(commandLine: string[]): ParsedCommandLin
                         default:
                             let type = opt.type;
                             if (typeof type === 'string') {
-                                Debug.fail(Diagnostics.Unknown_option_type_0_declared_in_your_command_line_options, type);
+                                Debug.error('Unknown option type {0} declared in your command line options', type);
                             }
-                    }
-                }
-                else {
-                    if (!process.env.TESTING) {
-                        errors.push(createDiagnostic(Diagnostics.Unknown_command_line_options_0, s));
                     }
                 }
             }

@@ -1,9 +1,9 @@
 
-/// <reference path='../../typings/platform/platform.d.ts' />
-/// <reference path='../../src/component/component.d.ts' />
+/// <reference path='../../../typings/platform/platform.d.ts' />
+/// <reference path='../../../src/component/component.d.ts' />
 
-import * as React from '../../src/component/element';
-import { ComposerContent, ComposerComponent, Link } from '../../src/component/layerComponents';
+import * as React from '../../../src/component/element';
+import { ComposerContent, ComposerComponent, Link } from '../../../src/component/layerComponents';
 
 interface NavigationBarProps extends Props {
     a: string;
@@ -15,7 +15,7 @@ interface NavigationBarElements extends Elements {
 }
 
 export class NavigationBar extends ComposerContent<NavigationBarProps, {}, NavigationBarElements> {
-    public fetch(): Promise<NavigationBarProps> {
+    public static fetch(): Promise<NavigationBarProps> {
         let promise = new Promise((resolve, reject) => {
             resolve({ a: 'a', b: 'b' });
         });
@@ -43,8 +43,8 @@ class TodoListItem extends ComposerComponent<TodoItemProps, {}, TodoListItemElem
     public render() {
         return (
             <li>
-                <div class={`todo-list-item-${this.props.id}`}>
-                    <Link to='/todo'>
+                <div class={`TodoListItem`}>
+                    <Link id={`TodoListItemAnchor${this.props.id}`} to='/todo' class='TodoItemAnchor'>
                         <h1>{this.props.title}</h1>
                         <p>{this.props.description}</p>
                     </Link>
@@ -63,7 +63,7 @@ interface TodoListElements extends Elements {
 }
 
 export class TodoList extends ComposerContent<TodoListProps, {}, TodoListElements> {
-    public fetch(): Promise<TodoListProps> {
+    public static fetch(): Promise<TodoListProps> {
         let promise = new Promise<TodoListProps>((resolve, reject) => {
             resolve({ list: [
                 {
@@ -110,7 +110,7 @@ interface TodoItemElements extends Elements {
 }
 
 export class Todo extends ComposerContent<TodoItemProps, {}, TodoItemElements> {
-    public fetch(): Promise<TodoItemProps> {
+    public static fetch(): Promise<TodoItemProps> {
         let promise = new Promise<TodoItemProps>((resolve, reject) => {
             resolve({
                 id: 1,

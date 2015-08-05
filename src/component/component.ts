@@ -4,7 +4,6 @@
 /// <reference path='./component.d.ts' />
 
 import { Platform, getPlatform } from './platform';
-import { Debug } from '../debug';
 import { unsetInstantiatedComponents, getInstantiatedComponents } from './element';
 import * as u from './utils';
 
@@ -42,12 +41,15 @@ export abstract class Component<P extends Props, S, E extends Elements> {
     public children: Child[];
 
     /* @internal */
+    public hasBoundDOM = false;
+
+    /* @internal */
     public customElements: Components = {};
 
     /* @internal */
     public instantiatedComponents: Components;
 
-    public renderId: number;
+    public lastRenderId: number;
 
     constructor(
         props: P,
@@ -73,6 +75,10 @@ export abstract class Component<P extends Props, S, E extends Elements> {
         if (!this.props.id) {
             this.props.id = (this as any).constructor.name;
         }
+    }
+
+    public setProp(name: string, value: any) {
+        this.props[name] = value;
     }
 
     /**
@@ -114,7 +120,10 @@ export abstract class Component<P extends Props, S, E extends Elements> {
 
     /* @internal */
     public bindDOM(renderId?: number): void {
-        this.renderAndSetComponent().bindDOM();
+        if (!this.hasBoundDOM) {
+            this.lastRenderId = this.renderAndSetComponent().bindDOM(renderId);
+            this.hasBoundDOM = true;
+        }
     }
 
     /**
@@ -131,8 +140,8 @@ export abstract class Component<P extends Props, S, E extends Elements> {
      */
     public getInstancesOf<R>(...components: string[]): Components {
         let componentBuilder: Components = {};
-        this.renderId = this.renderAndSetComponent().instantiateComponents();
-        let instantiatedComponents = getInstantiatedComponents(this.renderId);
+        this.lastRenderId = this.renderAndSetComponent().instantiateComponents();
+        let instantiatedComponents = getInstantiatedComponents(this.lastRenderId);
         for (let c of components) {
             componentBuilder[c] = instantiatedComponents[c];
         }
@@ -146,14 +155,15 @@ export abstract class Component<P extends Props, S, E extends Elements> {
 
     /* @internal */
     public toString(renderId?: number): string {
-        let s =  this.renderAndSetComponent().toString(renderId || this.renderId);
+        let s =  this.renderAndSetComponent().toString(renderId || this.lastRenderId);
         return s;
     }
 
     /* @internal */
     public toDOM(renderId?: number): DocumentFragment {
-        let DOM = this.renderAndSetComponent().toDOM(renderId || this.renderId);
-        return DOM;
+        let DOMRender = this.renderAndSetComponent().toDOM(renderId || this.lastRenderId);
+        this.lastRenderId = DOMRender.renderId;
+        return DOMRender.frag;
     }
 
     /* @internal */

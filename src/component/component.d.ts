@@ -47,13 +47,15 @@ declare abstract class Component<P extends Props, S, E> {
     public l10ns: any;
     public children: Child[];
     public elements: Elements;
+    public hasBoundDOM: boolean;
     public hasRenderedFirstElement: boolean;
     public customElements: Components;
     public instantiatedComponents: Components;
-    public renderId: number;
+    public lastRenderId: number;
 
     constructor(props: P, children?: Child[]);
 
+    public setProp(name: string, value: any): void;
     public setProps(props: P): void;
     public abstract render(): JSX.Element;
     public remove(): Promise<void>;
@@ -76,9 +78,9 @@ declare module JSX {
         isIntrinsic: boolean;
         isCustomElement: boolean;
         toString(renderId?: number): string;
-        toDOM(renderId?: number): DocumentFragment;
+        toDOM(renderId?: number): { renderId: number, frag:DocumentFragment };
         setComponent(component: Component<any, any, any>): void;
-        bindDOM(renderId?: number): void;
+        bindDOM(renderId?: number): number;
         getComponent(): Component<any, any, any>;
         instantiateComponents(renderId?: number): number;
         markAsChildOfRootElement(): void;

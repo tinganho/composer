@@ -1,3 +1,4 @@
+/// <reference path="typings/node/node.d.ts"/>
 
 var gulp = require('gulp');
 var rename = require('gulp-rename');
@@ -5,11 +6,11 @@ var generateTsDiagnostics = require('gulp-generate-ts-diagnostics');
 var path = require('path');
 var fs = require('fs');
 var mochaPhantomJs = require('gulp-mocha-phantomjs');
-var connect = require('gulp-connect');
 var open = require('open');
 var cp = require('child_process');
 var es = require('event-stream');
 var clean = require('gulp-rimraf');
+var sass = require('gulp-sass');
 
 var exec = cp.exec;
 
@@ -23,13 +24,10 @@ gulp.task('clean', function() {
     return es.concat(cleanLocalStream, cleanDistStream);
 });
 
-gulp.task('server-test', function() {
-    connect.server({
-        root: ['local', 'local/src'],
-        port: 3000
-    });
-
-    open('http://localhost:3000/test/runner.html');
+gulp.task('sass', function () {
+  gulp.src('test/imageTests/defaultComponents/**/*.scss', { base: 'test/imageTests/defaultComponents' })
+    .pipe(sass().on('error', sass.logError))
+    .pipe(gulp.dest('public/styles'));
 });
 
 gulp.task('compile-typescript-files', ['clean'], function(next) {
@@ -41,55 +39,43 @@ gulp.task('compile-typescript-files', ['clean'], function(next) {
 });
 
 gulp.task('copy-server-files', ['clean'], function() {
-    var runnerCopyStream = gulp.src('./test/runner.html', { base: './test' })
-        .pipe(gulp.dest('./local/test'));
+    var runnerCopyStream = gulp.src('test/cases/unitTests/runner.html', { base: 'test/cases/unitTests' })
+        .pipe(gulp.dest('built/test/cases/unitTests'));
 
-    var vendorCopyStream = gulp.src('./test/vendor/**/*', { base: './test' })
-        .pipe(gulp.dest('./local/test'));
+    var vendorCopyStream = gulp.src('public/scripts/vendor/**/*', { base: 'public/scripts' })
+        .pipe(gulp.dest('built/test/cases/unitTests'));
 
-    var mochaCopyStream = gulp.src('./node_modules/mocha/mocha.{css,js}', { base: './node_modules/mocha' })
-        .pipe(gulp.dest('./local/test/vendor'));
+    var mochaCopyStream = gulp.src('node_modules/mocha/mocha.{css,js}', { base: 'node_modules/mocha' })
+        .pipe(gulp.dest('built/test/cases/unitTests/vendor'));
 
-    var chaiCopyStream = gulp.src('./node_modules/chai/chai.js', { base: './node_modules/chai' })
-        .pipe(gulp.dest('./local/test/vendor'));
+    var chaiCopyStream = gulp.src('node_modules/chai/chai.js', { base: 'node_modules/chai' })
+        .pipe(gulp.dest('built/test/cases/unitTests/vendor'));
 
     return es.concat(runnerCopyStream, vendorCopyStream, mochaCopyStream, chaiCopyStream);
 });
 
 gulp.task('compile', ['copy-server-files', 'compile-typescript-files', ]);
 
-gulp.task('dist', ['compile'], function() {
-    gulp.src('local/src/component/index.js')
-        .pipe(browserify({
-            insertGlobals: false,
-            debug: false
-        }))
-        .pipe(rename('composer-component.js'))
-        .pipe(gulp.dest('dist'));
-});
-
-gulp.task('test', ['compile'], function() {
+gulp.task('unit-tests', ['compile'], function() {
     return gulp
-        .src('local/test/runner.html')
+        .src('built/test/cases/unitTests/runner.html')
         .pipe(mochaPhantomJs({ reporter: 'spec', phantomjs: {
             useColors: true,
         }}));
 });
 
-var diagnosticMessageProps = [
-    {
-        name: 'category',
-        type: 'string',
-    },
-];
-
-gulp.task('generate-diagnostics', function() {
-    gulp.src('src/diagnostics.json')
-        .pipe(rename('diagnostics.generated.ts'))
-        .pipe(generateTsDiagnostics(diagnosticMessageProps))
-        .pipe(gulp.dest('src/'));
+gulp.task('image-tests', ['compile'], function(next) {
+    exec('node_modules/mocha/bin/mocha built/src/harness/runner.js --reporter spec --timeout 10000 ' + process.argv.slice(3).join(' '), function(err, stdout, stderr) {
+        console.log(stdout);
+        console.log(stderr);
+        next(err);
+    });
 });
-gulp.task('d', ['generate-diagnostics']);
+
+gulp.task('selenium', function(next) {
+    exec('java -jar bin/selenium-server-standalone-2.46.0.jar');
+    console.log('Selenium server started. Press CTRL + C to close it.');
+});
 
 gulp.task('accept-baselines', function() {
     var cleanStream = gulp.src('test/baselines/reference')

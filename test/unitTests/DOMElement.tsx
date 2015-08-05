@@ -1,11 +1,11 @@
 
-/// <reference path='../../../src/component/component.d.ts' />
-/// <reference path='../../../typings/mocha/mocha.d.ts' />
-/// <reference path='../../../typings/chai/chai.d.ts' />
+/// <reference path='../../src/component/component.d.ts' />
+/// <reference path='../../typings/mocha/mocha.d.ts' />
+/// <reference path='../../typings/chai/chai.d.ts' />
 
-import React = require('../../../src/component/component');
-import { ComposerDOMElement } from '../../../src/component/DOMElement';
-import { prepareHTML } from '../../../src/harness/componentHarness';
+import React = require('../../src/component/element');
+import { ComposerDOMElement } from '../../src/component/DOMElement';
+import { prepareHTML } from '../../src/harness/componentHarness';
 import { expect } from 'chai';
 
 describe('DOM Elements', () => {

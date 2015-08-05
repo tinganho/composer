@@ -10,8 +10,8 @@
 import * as React from '../component/element';
 import { Express, Request, Response } from 'express';
 import { PageEmitInfo, emitBindings, ModuleKind } from './webBindingsEmitter';
-import { Debug, createTextWriter, printError } from '../core';
-import { Diagnostics } from '../diagnostics.generated';
+import { createTextWriter, printError } from '../core';
+import Debug from '../debug';
 import { sys } from '../sys';
 import * as path from 'path'
 import { createServer, Server } from 'http';
@@ -185,7 +185,7 @@ export class ServerComposer {
 
     constructor(options: ComposerOptions, commandLineOptions?: any) {
         if (serverComposer) {
-            Debug.fail(Diagnostics.Only_one_instance_of_Composer_is_allowed);
+            Debug.error('Only one instance of the Composer class is allowed');
         }
         if (!options.appName) {
             options.appName = cf.DEFAULT_APP_NAME;
@@ -223,10 +223,10 @@ export class ServerComposer {
         }
         else {
             if (!this.options.defaultDocumentFolder) {
-                Debug.fail(Diagnostics.You_have_not_defined_a_default_document_folder);
+                Debug.error('You have not defined a default document folder.');
             }
             this.defaultDocument = {
-                component: document,
+                component: document as any,
                 importPath: path.join(this.options.defaultDocumentFolder, getClassName(document)),
             }
         }
@@ -386,7 +386,7 @@ export class Page {
      */
     public hasDocument<T extends DocumentProps>(document: DocumentDeclaration | typeof ComposerDocument, documentProps: T): Page {
         if (!this.currentPlatform) {
-            Debug.fail(Diagnostics.You_must_define_a_platform_with_onPlatform_method_before_you_call_hasDocument);
+            Debug.error(`You must defina a platform with 'onPlatoform(...)' method before you call 'hasDocument(...)'.`);
         }
 
         if (isDeclaration(document)) {
@@ -394,10 +394,10 @@ export class Page {
         }
         else {
             if (!this.serverComposer.options.defaultDocumentFolder) {
-                Debug.fail(Diagnostics.You_have_not_defined_a_default_document_folder);
+                Debug.error('You have not defined a default document folder.');
             }
             this.currentPlatform.document = {
-                component: document,
+                component: document as any,
                 importPath: path.join(this.serverComposer.options.defaultDocumentFolder, getClassName(document)),
             }
         }
@@ -416,10 +416,10 @@ export class Page {
         }
         else {
             if (!this.serverComposer.options.defaultLayoutFolder) {
-                Debug.fail(Diagnostics.You_have_not_defined_a_default_layout_folder);
+                Debug.error('You have not defined a default layout folder.');
             }
             this.currentPlatform.layout = {
-                component: layout,
+                component: layout as any,
                 importPath: path.join(this.serverComposer.options.defaultLayoutFolder, getClassName(layout)),
             }
         }
@@ -433,7 +433,7 @@ export class Page {
             }
             else {
                 if (!this.serverComposer.options.defaultContentFolder) {
-                    Debug.fail(Diagnostics.You_have_not_defined_a_default_content_folder);
+                    Debug.error('You have not defined a default content folder.');
                 }
                 newContents[region] = {
                     component: content,
@@ -506,9 +506,8 @@ export class Page {
 
         for (let region in contents) {
             numberOfContents++;
-            (function(region: string, ContentComponent: new(props: any, children?: any) => ComposerContent<any, any, any>) {
-                let contentComponent = new ContentComponent({}, null);
-                contentComponent.fetch(req).then(result => {
+            (function(region: string, ContentComponent: typeof ComposerContent) {
+                ContentComponent.fetch(req).then(result => {
                     resultContents[region] = React.createElement(ContentComponent, result, null);
                     resultJsonScriptData.push({
                         id: `composer-content-json-${getClassName(contents[region].component).toLowerCase()}`,

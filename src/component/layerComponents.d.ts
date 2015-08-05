@@ -22,12 +22,18 @@ declare abstract class ComposerComponent<P extends Props, S, E extends Elements>
      * constructor's name.
      */
     public static name: string;
+
+    public id: string;
+
+    public remove(): Promise<void>;
 }
 
 declare abstract class ComposerDocument<P extends DocumentProps, S, E extends Elements> extends ComposerComponent<P, S, E> {}
 declare abstract class ComposerLayout<P extends Props, S, E extends Elements> extends ComposerComponent<P, S, E> {}
 declare abstract class ComposerContent<P extends Props, S, E extends Elements> extends ComposerComponent<P, S, E> {
-    public abstract fetch<TRequest, TResult>(request: TRequest): Promise<TResult>;
+    public static fetch<TRequest, TResult>(request: TRequest): Promise<TResult>;
+    public isCompanion: boolean;
+    public isMain: boolean;
 }
 
 declare interface ComposerComponents {

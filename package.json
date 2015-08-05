@@ -9,15 +9,20 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "browserstack-webdriver": "^2.41.1",
     "chai": "^3.0.0",
+    "event-stream": "^3.3.1",
     "express": "^4.13.0",
     "gulp": "^3.9.0",
-    "gulp-generate-ts-diagnostics": "^0.1.15",
+    "gulp-mocha-phantomjs": "^0.8.1",
     "gulp-rename": "^1.2.2",
     "gulp-rimraf": "^0.1.1",
+    "gulp-sass": "^2.0.4",
     "image-diff": "^1.2.0",
     "mocha": "^2.2.5",
+    "open": "0.0.5",
     "radium": "^0.13.2",
+    "selenium-webdriver": "^2.46.1",
     "source-map-support": "^0.3.2",
     "typescript-register": "^1.1.0"
   },
@@ -26,7 +31,6 @@
     "url": "https://github.com/tinganho/react-composer.git"
   },
   "dependencies": {
-    "browserstack-webdriver": "^2.41.1",
     "connect-modrewrite": "^0.8.1",
     "es6-promise": "^2.3.0",
     "glob": "^5.0.13",
@@ -34,10 +38,7 @@
     "mkdirp": "^0.5.1",
     "morgan": "^1.6.1",
     "react": "^0.14.0-beta1",
-    "react-addons-pure-render-mixin": "^0.14.0-beta1",
-    "react-dom": "^0.14.0-beta1",
     "rimraf": "^2.4.2",
-    "selenium-webdriver": "^2.46.1",
     "systemjs": "^0.18.4",
     "terminal-colors": "^0.1.3",
     "typescript": "https://github.com/Microsoft/TypeScript/tarball/01244d60dac82eec017e9150e663c5d144f989ff"

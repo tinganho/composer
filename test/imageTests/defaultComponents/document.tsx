@@ -1,9 +1,9 @@
 
-/// <reference path='../../typings/platform/platform.d.ts' />
-/// <reference path='../../src/component/component.d.ts' />
+/// <reference path='../../../typings/platform/platform.d.ts' />
+/// <reference path='../../../src/component/component.d.ts' />
 
-import * as React from '../../src/component/element';
-import { ComposerDocument, Link } from '../../src/component/layerComponents';
+import * as React from '../../../src/component/element';
+import { ComposerDocument, Link } from '../../../src/component/layerComponents';
 
 interface ComposerDocumentProps extends DocumentProps {
     title: string;
@@ -17,7 +17,9 @@ export class Document extends ComposerDocument<ComposerDocumentProps, {}, Elemen
             <html lang='en'>
                 <head>
                     <title>{this.props.title}</title>
-                    <link rel='stylesheet' href='/public/styles/styles.css'/>
+                    <link rel='stylesheet' href='/public/styles/contents.css'/>
+                    <link rel='stylesheet' href='/public/styles/layout.css'/>
+                    <link rel='stylesheet' href='/public/styles/document.css'/>
                     <script type='text/javascript' dangerouslySetInnerHTML={{ __html: 'window.inServer = false; window.inClient = true;' }}></script>
                     <script type='text/javascript' src="/public/scripts/vendor/promise.js"></script>
                     <script type='text/javascript' src="/public/scripts/vendor/promise.prototype.finally.js"></script>
@@ -33,7 +35,7 @@ export class Document extends ComposerDocument<ComposerDocumentProps, {}, Elemen
                         );
                     })}
                 </head>
-                <body>
+                <body id="LayoutRegion">
                     {this.props.layout}
                 </body>
             </html>

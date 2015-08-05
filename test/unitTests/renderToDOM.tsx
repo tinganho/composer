@@ -1,11 +1,11 @@
 
-/// <reference path='../../../src/component/component.d.ts' />
-/// <reference path='../../../typings/mocha/mocha.d.ts' />
-/// <reference path='../../../typings/chai/chai.d.ts' />
+/// <reference path='../../src/component/component.d.ts' />
+/// <reference path='../../typings/mocha/mocha.d.ts' />
+/// <reference path='../../typings/chai/chai.d.ts' />
 
-import React = require('../../../src/component/component');
-import { Component } from '../../../src/component/component';
-import { getMountedDOMHTMLString } from '../../../src/harness/componentHarness';
+import React = require('../../src/component/element');
+import { Component } from '../../src/component/component';
+import { getMountedDOMHTMLString } from '../../src/harness/componentHarness';
 import { expect } from 'chai';
 
 interface P extends Props { }
@@ -23,18 +23,6 @@ describe('Render to DOM', () => {
 
             let c1 = new C1({ id: 'i'});
             expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i"></div>');
-        });
-
-        it('non-id exception', () => {
-            class C1 extends Component<P, S, E> {
-                public render(): JSX.Element {
-                    return (<div></div>);
-                }
-            }
-            function f() {
-                let c1 = new (C1 as any)();
-            }
-            expect(f).to.throw('You must define an id for your component C1');
         });
 
         it('one property', () => {

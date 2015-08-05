@@ -1,6 +1,5 @@
 
 import { CharacterCodes, Map } from './types';
-import { DiagnosticMessage } from './diagnostics.generated';
 import { sys } from './sys';
 import 'terminal-colors';
 
@@ -315,64 +314,6 @@ export function fileExtensionIs(path: string, extension: string): boolean {
     return pathLen > extLen && path.substr(pathLen - extLen, extLen) === extension;
 }
 
-export function printDiagnostic(diagnostic: DiagnosticMessage): void {
-    console.log(`[ ${(<any>(diagnostic.category + '')).red} ] - ${diagnostic.message}`);
-}
-
-export function printDiagnostics(diagnostics: DiagnosticMessage[]): void {
-    for (let d of diagnostics) {
-        printDiagnostic(d);
-    }
-}
-
-function formatStringFromArgs(text: string, args: { [index: number]: any; }, baseIndex?: number): string {
-    baseIndex = baseIndex || 0;
-
-    return text.replace(/\{(\d+)\}/g, (match, index?) => args[+index + baseIndex]);
-}
-
-export function createDiagnostic(diagnostic: DiagnosticMessage, ...args: any[]): DiagnosticMessage;
-export function createDiagnostic(diagnostic: DiagnosticMessage): DiagnosticMessage {
-    let text = diagnostic.message;
-
-    if (arguments.length > 1) {
-        text = formatStringFromArgs(text, arguments, 1);
-    }
-
-    return {
-        message: text,
-        category: diagnostic.category
-    }
-}
-
-export namespace Debug {
-    let debugText = `---- ${(`debug` as any).yellow} ----`;
-    export function assert(expression: boolean, diagnostic: DiagnosticMessage, ...args: string[]): void {
-        if (!expression) {
-            if (args.length) {
-                printDiagnostic(createDiagnostic(diagnostic, args));
-            }
-            else {
-                printDiagnostic(diagnostic);
-            }
-            sys.exit();
-        }
-    }
-
-    export function debug(text: string): void {
-        console.log(`[ ${(<any>('message')).magenta} ] - ${text}`);
-    }
-
-    export function fail(diagnostic: DiagnosticMessage, ...args: string[]): void {
-        Debug.assert(false, diagnostic, ...args);
-    }
-}
-
-let hasOwnProperty = Object.prototype.hasOwnProperty;
-export function hasProperty<T>(map: Map<T>, key: string): boolean {
-    return hasOwnProperty.call(map, key);
-}
-
 export function includes<T>(arr: T[], search: T): boolean {
     return arr.indexOf(search) !== -1;
 }
@@ -380,4 +321,9 @@ export function includes<T>(arr: T[], search: T): boolean {
 export function printError(err: Error): void {
     console.log(err.message);
     console.log((err as any).stack);
+}
+
+let hasOwnProperty = Object.prototype.hasOwnProperty;
+export function hasProperty<T>(map: Map<T>, key: string): boolean {
+    return hasOwnProperty.call(map, key);
 }

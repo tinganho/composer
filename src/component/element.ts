@@ -41,9 +41,29 @@ export function createElement(
         isChildOfRootElement = true;
     }
 
-    function toDOM(renderId?: number): DocumentFragment {
-        let frag = document.createDocumentFragment();
+    function handleDOMAction(
+        renderId: number,
+        handleIntrinsicElement: (element: string, renderId: number) => void,
+        handleCustomElement: (element: new(props: Props, children: Child[]) => Component<any, any, any>, renderId: number) => void): number {
+
+        if (!renderId) {
+            renderId = getRenderId();
+        }
+        if (!instantiatedComponents[renderId]) {
+            instantiatedComponents[renderId] = {};
+        }
         if (typeof element === 'string') {
+            handleIntrinsicElement(element, renderId);
+        }
+        else {
+            handleCustomElement(element, renderId);
+        }
+        return renderId;
+    }
+
+    function toDOM(renderId?: number): { renderId: number, frag: DocumentFragment } {
+        let frag = document.createDocumentFragment();
+        renderId = handleDOMAction(renderId, (element, renderId) => {
             let root = document.createElement(element);
 
             if (!component.hasRenderedFirstElement) {
@@ -78,11 +98,11 @@ export function createElement(
                 }
                 else if (u.isArray<JSX.Element[]>(child)) {
                     for (let c of child) {
-                        renderChildToDOM(root, c);
+                        renderChildToDOM(root, c, renderId);
                     }
                 }
                 else {
-                    renderChildToDOM(root, child);
+                    renderChildToDOM(root, child, renderId);
                 }
             }
 
@@ -98,18 +118,18 @@ export function createElement(
                 // Reset rendered first element flag so we can render the id again.
                 component.hasRenderedFirstElement = false;
             }
-        }
-        else {
-            let customElement: Component<any, any, any>;
+        }, (element, renderId) => {
+            let elementComponent: Component<any, any, any>;
             if (instantiatedComponents[renderId] &&
                 instantiatedComponents[renderId][props.id]) {
 
-                customElement = instantiatedComponents[renderId][props.id];
+                elementComponent = instantiatedComponents[renderId][props.id];
             }
             else {
-                customElement = new element(props, children);
+                elementComponent = new element(props, children);
+                instantiatedComponents[renderId][props.id] = elementComponent;
             }
-            frag.appendChild(customElement.toDOM());
+            frag.appendChild(elementComponent.toDOM());
 
             // We want to add a root custom element too. The children custom element
             // is added above. We do a check of the component variable. There is no
@@ -117,24 +137,23 @@ export function createElement(
             // root custom element, becase the component class calls `setComponent`
             // and passes the component to this closure.
             if (component) {
-                component.customElements[customElement.props.id] = customElement;
+                component.customElements[elementComponent.props.id] = elementComponent;
             }
             else {
-                component = customElement;
+                component = elementComponent;
             }
-        }
+        });
 
-        return frag;
+        return { renderId, frag }
 
-        function renderChildToDOM(root: HTMLElement, child: JSX.Element) {
+        function renderChildToDOM(root: HTMLElement, child: JSX.Element, renderId: number) {
             if (child.isIntrinsic) {
                 child.setComponent(component);
                 child.markAsChildOfRootElement();
-                root.appendChild(child.toDOM());
+                root.appendChild(child.toDOM(renderId).frag);
             }
             else {
-                root.appendChild(child.toDOM());
-                console.log(child);
+                root.appendChild(child.toDOM(renderId).frag);
                 let childComponent = child.getComponent();
                 component.customElements[childComponent.props.id] = childComponent;
             }
@@ -236,8 +255,8 @@ export function createElement(
      * Set references by binding the elements to the component. Should only
      * be called by the composer router.
      */
-    function bindDOM(renderId?: number): void {
-        if (typeof element === 'string') {
+    function bindDOM(renderId?: number): number {
+        renderId = handleDOMAction(renderId, (element, renderId) => {
             let root = document.getElementById(component.props.id);
             if (!root) {
                 Debug.error(`Could not bind root element '{0}'.`, component.props.id);
@@ -268,25 +287,25 @@ export function createElement(
                         if(!c) {
                             continue;
                         }
-                        bindChildDOM(c);
+                        bindChildDOM(c, renderId);
                     }
                 }
                 else {
-                    bindChildDOM(child);
+                    bindChildDOM(child, renderId);
                 }
             }
-        }
-        else {
-            let el: Component<any, any, any>;
+        }, (element, renderId) => {
+            let elementComponent: Component<any, any, any>;
             if (instantiatedComponents[renderId] &&
                 instantiatedComponents[renderId][props.id]) {
 
-                el = instantiatedComponents[renderId][props.id]
+                elementComponent = instantiatedComponents[renderId][props.id]
             }
             else {
-                el = new element(props, children);
+                elementComponent = new element(props, children);
+                instantiatedComponents[renderId][props.id] = elementComponent;
             }
-            el.bindDOM(renderId);
+            elementComponent.bindDOM(renderId);
 
             // We want to add a root custom element too. The children custom element
             // is added above. We do a check of the component variable. There is no
@@ -294,14 +313,16 @@ export function createElement(
             // root custom element, becase the component class calls `setComponent`
             // and passes the component to this closure.
             if (component) {
-                component.customElements[el.props.id] = el;
+                component.customElements[elementComponent.props.id] = elementComponent;
             }
             else {
-                component = el;
+                component = elementComponent;
             }
-        }
+        });
 
-        function bindChildDOM(child: JSX.Element) {
+        return renderId;
+
+        function bindChildDOM(child: JSX.Element, renderId: number) {
             if (child.isIntrinsic) {
                 child.setComponent(component);
                 child.bindDOM(renderId);
@@ -315,36 +336,29 @@ export function createElement(
     }
 
     function instantiateComponents(renderId?: number): number {
-        if (!renderId) {
-            renderId = getRenderId();
-        }
-        if (!instantiatedComponents[renderId]) {
-            instantiatedComponents[renderId] = {};
-        }
-        if (typeof element === 'string') {
+        renderId = handleDOMAction(renderId, (element, renderId) => {
             for (let child of children) {
                 if (!child || typeof child === 'string') {
                     continue;
                 }
                 else if (u.isArray<JSX.Element[]>(child)) {
                     for (let c of child) {
-                        instantiateChildComponents(c);
+                        instantiateChildComponents(c, renderId);
                     }
                 }
                 else {
-                    instantiateChildComponents(child);
+                    instantiateChildComponents(child, renderId);
                 }
             }
-        }
-        else {
+        }, (element, renderId) => {
             let elementComponent = new element(props, children);
             instantiatedComponents[renderId][props.id] = elementComponent;
             elementComponent.instantiateComponents(renderId);
-        }
+        });
 
         return renderId;
 
-        function instantiateChildComponents(child: JSX.Element): void {
+        function instantiateChildComponents(child: JSX.Element, renderId: number): void {
             if (child.isCustomElement) {
                 child.instantiateComponents(renderId);
             }

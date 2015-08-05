@@ -19,15 +19,14 @@ import { sync as glob } from 'glob';
 import * as path from 'path';
 import express = require('express');
 import { createServer } from 'http';
+import Debug from '../debug';
 import { parseCommandLineOptions } from './commandLineParser';
-import { printDiagnostics, printDiagnostic, printError, Debug } from '../core';
 import { sys } from '../sys';
-import { Diagnostics } from '../diagnostics.generated';
 import { sync as removeFolderOrFile } from 'rimraf';
 import { BrowserDirectives } from './browserDirectives';
-import { Document } from '../../test/defaultComponents/document';
-import * as contentComponents from '../../test/defaultComponents/contents';
-import { Layout } from '../../test/defaultComponents/layout';
+import { Document } from '../../test/imageTests/defaultComponents/document';
+import * as contentComponents from '../../test/imageTests/defaultComponents/contents';
+import { Layout } from '../../test/imageTests/defaultComponents/layout';
 import { WebdriverTest } from './webdriverTest';
 
 declare function require(path: string): any;
@@ -42,33 +41,27 @@ let defaultPlatform: PlatformDetect = { name: 'all', detect: (req: express.Reque
 function useDefaultDocument(): DocumentDeclaration {
     return {
         component: Document,
-        importPath: '/test/defaultComponents/document',
+        importPath: '/test/imageTests/defaultComponents/document',
     }
 }
 
-export default class HtmlRunner {
-    public options: CommandLineOptions;
+export default class ImageTestRunner {
     public builtFolder = path.join(__dirname, '../../');
     public directives: BrowserDirectives;
     public root = path.join(this.builtFolder, '../');
 
-    constructor(args: string[]) {
-        let { options, errors } = parseCommandLineOptions(args);
-        if (errors.length > 0) {
-            printDiagnostics(errors);
-            process.exit();
-        }
-        this.options = options;
+    constructor(public options: CommandLineOptions) {
+
     }
 
     public createComposer(app: express.Express, folderPath: string, fileName: string, shouldEmitComposer: boolean): { serverComposer: ServerComposer, browserDirectives: BrowserDirectives } {
         let componentFolderPath = path.join(folderPath, 'components');
         let folderName = path.basename(folderPath);
         if (!folderName) {
-            Debug.fail(Diagnostics.Could_not_get_folder_name_from_0, folderPath);
+            Debug.error('Could not get folder name from {0}', folderPath);
         }
         app.use('/src', express.static(path.join(this.root, 'built/src')));
-        app.use('/test/defaultComponents', express.static(path.join(this.root, 'built/test/defaultComponents')));
+        app.use('/test/imageTests/defaultComponents', express.static(path.join(this.root, 'built/test/imageTests/defaultComponents')));
         app.use('/public', express.static(path.join(this.root, 'public')));
         app.use('/' + componentFolderPath, express.static(path.join('built', folderPath, 'components')));
         app.use(logger('dev'));
@@ -88,13 +81,13 @@ export default class HtmlRunner {
             useDefaultLayout: function(): LayoutDeclaration {
                 return {
                     component: Layout,
-                    importPath: '/test/defaultComponents/layout',
+                    importPath: '/test/imageTests/defaultComponents/layout',
                 }
             },
             useDefaultContent: function(content: string): ContentDeclaration {
                 return {
                     component: (contentComponents as any)[content] as new(props: any, children: any) => ComposerContent<any, any, any>,
-                    importPath: 'test/defaultComponents/contents',
+                    importPath: 'test/imageTests/defaultComponents/contents',
                 }
             },
             defaultPlatform: defaultPlatform
@@ -109,7 +102,7 @@ export default class HtmlRunner {
     }
 
     private stopServerDueToError(serverComposer: ServerComposer, err: Error, callback: () => void) {
-        printError(err);
+        Debug.printError(err);
         serverComposer.stop(callback);
     }
 
@@ -117,10 +110,10 @@ export default class HtmlRunner {
         let self = this;
         let pattern: string;
         if (this.options.tests) {
-            pattern = `test/cases/projects/*${this.options.tests}*/test.js`;
+            pattern = `test/imageTests/cases/projects/*${this.options.tests}*/test.js`;
         }
         else {
-            pattern = 'test/cases/projects/*/test.js';
+            pattern = 'test/imageTests/cases/projects/*/test.js';
         }
         removeFolderOrFile(path.join(this.root, 'test/baselines/local'));
         removeFolderOrFile(path.join(this.root, 'test/baselines/diff'));
@@ -141,18 +134,18 @@ export default class HtmlRunner {
 
                         let app = express();
                         let { serverComposer, browserDirectives } = self.createComposer(app, folderPath, fileName, /*shouldEmitComposer*/false);
-                        Debug.debug('Starting server.');
+                        Debug.log('Starting server.');
                         serverComposer.start(err => {
-                            Debug.debug('Started server.');
+                            Debug.log('Started server.');
                             if (err) {
                                 return self.stopServerDueToError(serverComposer, err, () => done());
                             }
                             if (self.options.interactive) {
-                                printDiagnostic(Diagnostics.Stop_the_server_by_exiting_the_session_CTRL_plus_C);
+                                Debug.prompt('Stop the server by exiting the sessiotion with CTRL + C.');
                             }
                             else {
                                 self.testWithHeadlessWebBrowser(app, serverComposer, folderName, browserDirectives, () => {
-                                    Debug.debug(`Finished testing ${folderName}.`);
+                                    Debug.log(`Finished testing ${folderName}.`);
                                     done();
                                 });
                             }
@@ -172,9 +165,9 @@ export default class HtmlRunner {
 
         Debug.debug(`Testing ${folderName}.`);
 
-        let resultFilePath = path.join(this.root, `test/baselines/local/${folderName}.png`);
-        let expectedFilePath = path.join(this.root, `test/baselines/reference/${folderName}.png`);
-        let diffFilePath = path.join(this.root, `test/baselines/diff/${folderName}.png`);
+        let resultFilePath = path.join(this.root, `test/imageTests/baselines/local/${folderName}.png`);
+        let expectedFilePath = path.join(this.root, `test/imageTests/baselines/reference/${folderName}.png`);
+        let diffFilePath = path.join(this.root, `test/imageTests/baselines/diff/${folderName}.png`);
         let initialRoute = browserDirectives.initialRoute || '/';
         let webdriverTest = new WebdriverTest({
             browserName: 'chrome',
@@ -193,8 +186,7 @@ export default class HtmlRunner {
             .screenshot(resultFilePath)
             .end((err) => {
                 if(err) {
-                    printDiagnostic(Diagnostics.Could_not_start_headless_web_browser);
-                    printError(err);
+                    Debug.error('Could not start webdriver test.', err);
                 }
 
                 if (!sys.fileExists(expectedFilePath)) {
