@@ -219,7 +219,6 @@ this component is properly named?`);
                                             }
 
                                             this.currentLayoutComponent.bindDOM();
-                                            this.currentLayoutComponent.releaseLastRender();
                                             this.currentContents = this.currentLayoutComponent.customElements as CurrentContents;
                                             for (let c in this.currentContents) {
                                                 if (this.currentContents[c].show) {

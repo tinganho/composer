@@ -2,6 +2,6 @@
 built
 node_modules
 public/scripts/bindings.js
-public/scripts/composer.js
+public/scripts/router.js
 test/baselines/local
 test/baselines/diff
