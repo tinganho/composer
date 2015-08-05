@@ -71,6 +71,7 @@ declare abstract class Component<P extends Props, S, E> {
     public toString(renderId?: number): string;
     public getInstancesOf<R>(...components: string[]): Components;
     public renderAndSetComponent(): JSX.Element;
+    public releaseLastRender(): void;
 }
 
 declare module JSX {

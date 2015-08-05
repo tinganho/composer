@@ -134,7 +134,7 @@ describe('Get instances of', () => {
         let c1 = new C1({ id: 'i1' });
         let { i2 } = c1.getInstancesOf('i2');
         (i2 as C2).result();
-        expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i2">text</div>');
+        expect(getMountedDOMHTMLString(c1.toDOM(c1.lastRenderId))).to.equal('<div id="i2">text</div>');
     });
 
     it('should reuse instances on bind DOM', () => {
@@ -156,7 +156,7 @@ describe('Get instances of', () => {
         let c1 = new C1({ id: 'i1' });
         let { i2 } = c1.getInstancesOf('i2');
         (i2 as C2).result();
-        i2.bindDOM();
+        i2.bindDOM(c1.lastRenderId);
         expect(i2.root.getHTML()).to.equal('text');
     });
 });

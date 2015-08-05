@@ -73,11 +73,6 @@ var Router = (function () {
             }
         }
     };
-    Router.prototype.loadContentsFromNetwork = function (placeholderContents, page) {
-        var promise = new Promise(function (resolve, reject) {
-        });
-        return promise;
-    };
     Router.prototype.bindLayoutAndContents = function (page, contents) {
         this.currentLayoutComponent = new this.pageComponents.Layout[page.layout.className](contents);
         this.currentContents = this.currentLayoutComponent.customElements;
@@ -145,6 +140,7 @@ var Router = (function () {
         var currentNumberOfNetworkRequests = 0;
         var expectedNumberOfNetworkRequest = 0;
         this.hideIrrelevantCurrentContents(page).then(function () {
+            var contentClassNames = [];
             for (var _i = 0, _a = page.contents; _i < _a.length; _i++) {
                 var content = _a[_i];
                 var ContentComponent = window[_this.appName].Component.Content[content.className];
@@ -153,6 +149,8 @@ var Router = (function () {
                     continue;
                 }
                 expectedNumberOfNetworkRequest++;
+                // Is only used below to get all content instances of the layout component
+                contentClassNames.push(content.className);
                 (function (contentInfo, ContentComponent) {
                     if (typeof ContentComponent.fetch !== 'function') {
                         throw Error("You have not implemented a static fetch function on your component " + contentInfo.className);
@@ -172,11 +170,22 @@ var Router = (function () {
                                     _this.currentLayoutComponent = layoutComponent;
                                 }
                                 else {
-                                    for (var c in contents) {
-                                        var region = document.getElementById(c + 'Region');
-                                        region.replaceChild(contents[c].toDOM(), region.firstElementChild);
-                                        _this.currentLayoutComponent.setProp(c, content[c]);
-                                    }
+                                    _this.loopThroughIrrelevantCurrentContentsAndExec(page, 'remove').then(function () {
+                                        for (var c in contents) {
+                                            var content_1 = contents[c];
+                                            var region = document.getElementById(c + 'Region');
+                                            _this.currentLayoutComponent.setProp(c, content_1);
+                                            region.appendChild(content_1.toDOM().frag);
+                                        }
+                                        _this.currentLayoutComponent.bindDOM();
+                                        _this.currentLayoutComponent.releaseLastRender();
+                                        _this.currentContents = _this.currentLayoutComponent.customElements;
+                                        for (var c in _this.currentContents) {
+                                            if (_this.currentContents[c].show) {
+                                                _this.currentContents[c].show();
+                                            }
+                                        }
+                                    });
                                 }
                             }
                         })

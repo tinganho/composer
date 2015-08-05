@@ -176,6 +176,7 @@ this component is properly named?`);
         let expectedNumberOfNetworkRequest = 0;
 
         this.hideIrrelevantCurrentContents(page).then(() => {
+            let contentClassNames: string[] = [];
             for (var content of page.contents) {
                 var ContentComponent = (window as any)[this.appName].Component.Content[content.className];
 
@@ -185,6 +186,9 @@ this component is properly named?`);
                 }
 
                 expectedNumberOfNetworkRequest++;
+
+                // Is only used below to get all content instances of the layout component
+                contentClassNames.push(content.className);
 
                 ((contentInfo: ContentComponentInfo, ContentComponent: typeof ComposerContent) => {
                     if (typeof ContentComponent.fetch !== 'function') {
@@ -211,8 +215,16 @@ this component is properly named?`);
                                                 let content = (contents as any)[c];
                                                 let region = document.getElementById(c + 'Region');
                                                 this.currentLayoutComponent.setProp(c, content);
-                                                region.appendChild(content.toDOM());
-                                                content.bindDOM(content.lastRenderId);
+                                                region.appendChild(content.toDOM().frag);
+                                            }
+
+                                            this.currentLayoutComponent.bindDOM();
+                                            this.currentLayoutComponent.releaseLastRender();
+                                            this.currentContents = this.currentLayoutComponent.customElements as CurrentContents;
+                                            for (let c in this.currentContents) {
+                                                if (this.currentContents[c].show) {
+                                                    this.currentContents[c].show();
+                                                }
                                             }
                                         });
                                     }

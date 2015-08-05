@@ -58,7 +58,7 @@ gulp.task('compile', ['copy-server-files', 'compile-typescript-files', ]);
 
 gulp.task('unit-tests', ['compile'], function() {
     return gulp
-        .src('built/test/cases/unitTests/runner.html')
+        .src('built/test/unitTests/runner.html')
         .pipe(mochaPhantomJs({ reporter: 'spec', phantomjs: {
             useColors: true,
         }}));

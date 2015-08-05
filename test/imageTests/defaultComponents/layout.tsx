@@ -16,7 +16,7 @@ export class Layout extends ComposerLayout<Regions, {}, Elements> {
     public render() {
         return (
             <div id='Layout'>
-                <header class='TopBarRegion'>
+                <header id='TopBarRegion'>
                     {this.props.TopBar}
                 </header>
                 <div id='BodyRegion'>

@@ -78,7 +78,14 @@ export abstract class Component<P extends Props, S, E extends Elements> {
     }
 
     public setProp(name: string, value: any) {
-        this.props[name] = value;
+        if (this.props) {
+            this.props[name] = value;
+        }
+        else {
+            (this as any).props = {
+                [name]: value
+            }
+        }
     }
 
     /**
@@ -133,6 +140,10 @@ export abstract class Component<P extends Props, S, E extends Elements> {
      */
     public bindInteractions(): void {
 
+    }
+
+    public releaseLastRender(): void {
+        unsetInstantiatedComponents(this.lastRenderId);
     }
 
     /**
