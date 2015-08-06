@@ -1,6 +1,7 @@
 
 /// <reference path='../../typings/connect-modrewrite/connect-modrewrite.d.ts'/>
 /// <reference path='../../typings/mocha/mocha.d.ts'/>
+/// <reference path='../../typings/chai/chai.d.ts' />
 /// <reference path='../../typings/express/express.d.ts'/>
 /// <reference path='../../typings/morgan/morgan.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
