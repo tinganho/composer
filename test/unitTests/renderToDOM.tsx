@@ -280,4 +280,32 @@ describe('Render to DOM', () => {
             expect(c1.customElements['i2'].toString()).to.equal('<div id="i2"><div id="i3"></div></div>');
         });
     });
+
+    describe('Stored renderings', () => {
+        it('remove renderings on next tick', () => {
+            class C1 extends Component<P, S, E> {
+                public render(): JSX.Element {
+                    return (<C2 id="i2"><C3 id="i3"></C3></C2>);
+                }
+            }
+            class C2 extends Component<P, S, E> {
+                public render(): JSX.Element {
+                    return (<div>{this.children}</div>);
+                }
+            }
+            class C3 extends Component<P, S, E> {
+                public render(): JSX.Element {
+                    return (<div></div>);
+                }
+            }
+
+            let c1 = new C1({ id: 'i1'});
+            c1.toDOM();
+
+            expect(React.getInstantiatedComponents(c1.lastRenderId)).to.not.be.undefined;
+            setTimeout(() => {
+                expect(React.getInstantiatedComponents(c1.lastRenderId)).to.be.undefined;
+            }, 0);
+        });
+    });
 });
