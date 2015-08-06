@@ -19,7 +19,7 @@ export function test(d: BrowserDirectives): BrowserDirectives {
     }
 
     d.useBrowserActions = webdriver => {
-        webdriver.click('todo-list-item-1').wait('todo-1');
+        webdriver.click('TodoListItem1').wait('Todo1');
         return webdriver;
     }
 

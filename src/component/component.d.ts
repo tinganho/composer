@@ -1,7 +1,6 @@
 
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts' />
 
-
 declare interface DOMElement {
     id: string;
     nativeElement: HTMLElement;
@@ -53,6 +52,7 @@ declare abstract class Component<P extends Props, S, E> {
     public customElements: Components;
     public instantiatedComponents: Components;
     public lastRenderId: number;
+    public promises: any[];
 
     constructor(props?: P, children?: Child[]);
 
@@ -62,7 +62,7 @@ declare abstract class Component<P extends Props, S, E> {
     public abstract render(): JSX.Element;
     public remove(): Promise<void>;
     public hide(): Promise<void>;
-    public show(): Promise<void>;
+    public show(): Promise<any>;
     public fetch<TRequest, TResult>(req: TRequest): Promise<TResult>;
     public bindDOM(renderId?: number): void;
     public bindInteractions(): void;
@@ -72,11 +72,11 @@ declare abstract class Component<P extends Props, S, E> {
     public toDOM(renderId?: number): DocumentFragment;
     public toString(renderId?: number): string;
     public getInstancesOf<R>(...components: string[]): Components;
-    public renderAndSetComponent(): JSX.Element;
-    public releaseLastRender(): void;
+    public recursivelyCallMethod(target: any, repetitiveAccessor: string, method: string): void;
+    // public renderAndSetComponent(): JSX.Element;
 }
 
-declare module JSX {
+declare namespace JSX {
     export interface Element {
         isIntrinsic: boolean;
         isCustomElement: boolean;

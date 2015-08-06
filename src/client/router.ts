@@ -105,7 +105,6 @@ this component is properly named?`);
         this.currentLayoutComponent = new (this as any).pageComponents.Layout[page.layout.className](contents);
         this.currentLayoutComponent.bindDOM();
         this.currentContents = this.currentLayoutComponent.customElements as any;
-        console.log(this.currentContents)
     }
 
     private renderLayoutAndContents(page: Page, contents: Contents) {
@@ -124,12 +123,12 @@ this component is properly named?`);
             if (!this.currentContents || Object.keys(this.currentContents).length === 0) {
                 return reject(new Error('You have not set any content for the current page.'));
             }
-            console.log(this.currentContents)
             for (var currentContent in this.currentContents) {
+                if (!this.currentContents.hasOwnProperty(currentContent)) return;
+
                 var removeCurrentContent = true;
                 for (let nextContent of nextPage.contents) {
-                    console.log(nextContent.className , currentContent.constructor.name)
-                    if (nextContent.className === currentContent.constructor.name) {
+                    if (nextContent.className === (this as any).currentContents[currentContent].constructor.name) {
                         removeCurrentContent = false;
                         usedRegions.push(nextContent.region);
                     }
@@ -240,6 +239,8 @@ this component is properly named?`);
                                             this.currentLayoutComponent.hasBoundDOM = false;
                                             this.currentLayoutComponent.bindDOM();
                                             this.currentContents = this.currentLayoutComponent.customElements as CurrentContents;
+
+                                            console.log(this.currentContents)
                                             for (let c in this.currentContents) {
                                                 if (this.currentContents[c].show) {
                                                     this.currentContents[c].show();

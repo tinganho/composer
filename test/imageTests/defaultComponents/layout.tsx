@@ -1,7 +1,4 @@
 
-/// <reference path='../../../typings/platform/platform.d.ts' />
-/// <reference path='../../../src/component/component.d.ts' />
-
 import * as React from '../../../src/component/element';
 import { ComposerLayout, Link } from '../../../src/component/layerComponents';
 

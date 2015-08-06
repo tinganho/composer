@@ -1,7 +1,4 @@
 
-/// <reference path='../../../typings/platform/platform.d.ts' />
-/// <reference path='../../../src/component/component.d.ts' />
-
 import * as React from '../../../src/component/element';
 import { ComposerContent, ComposerComponent, Link } from '../../../src/component/layerComponents';
 
@@ -33,30 +30,6 @@ export class NavigationBar extends ComposerContent<NavigationBarProps, {}, Navig
     public render() {
         return (
             <div class='NavigationBar'>{this.props.a + this.props.b}</div>
-        );
-    }
-}
-
-interface TodoItemProps extends Props {
-    title: string;
-    description: string;
-}
-
-interface TodoListItemElements extends Elements {
-
-}
-
-class TodoListItem extends ComposerComponent<TodoItemProps, {}, TodoListItemElements> {
-    public render() {
-        return (
-            <li>
-                <div class={`TodoListItem`}>
-                    <Link id={`TodoListItemAnchor${this.props.id}`} to='/todo' class='TodoItemAnchor'>
-                        <h1>{this.props.title}</h1>
-                        <p>{this.props.description}</p>
-                    </Link>
-                </div>
-            </li>
         );
     }
 }
@@ -99,15 +72,49 @@ export class TodoList extends ComposerContent<TodoListProps, {}, TodoListElement
         return promise;
     }
 
+    public show(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            super.show().then(() => {
+
+            });
+        });
+
+    }
+
     public render() {
         return (
-            <div class='TodoList'>
-                <ul>
+            <div>
+                <ul class='TodoList'>
                     {this.props.list.map(todo =>{
-                        return <TodoListItem key={todo.id} id={todo.id} title={todo.title} description={todo.description}/>
+                        return <TodoListItem id={todo.id} title={todo.title} description={todo.description}/>
                     })}
                 </ul>
             </div>
+        );
+    }
+}
+
+
+interface TodoItemProps extends Props {
+    title: string;
+    description: string;
+}
+
+interface TodoListItemElements extends Elements {
+
+}
+
+class TodoListItem extends ComposerComponent<TodoItemProps, {}, TodoListItemElements> {
+    public render() {
+        return (
+            <li class='TodoListItem'>
+                <div >
+                    <Link id={`TodoListItemAnchor${this.props.id}`} to='/todo' class='TodoItemAnchor'>
+                        <h1>{this.props.title}</h1>
+                        <p>{this.props.description}</p>
+                    </Link>
+                </div>
+            </li>
         );
     }
 }
@@ -119,11 +126,13 @@ interface TodoItemElements extends Elements {
 export class Todo extends ComposerContent<TodoItemProps, {}, TodoItemElements> {
     public static fetch(): Promise<TodoItemProps> {
         let promise = new Promise<TodoItemProps>((resolve, reject) => {
-            resolve({
-                id: 1,
-                title: 'Donec id elit non mi porta gravida at eget metus.',
-                description: 'Cras justo odio, dapibus ac facilisis in, egestas eget quam.',
-            });
+            setTimeout(() => {
+                resolve({
+                    id: 1,
+                    title: 'Donec id elit non mi porta gravida at eget metus.',
+                    description: 'Cras justo odio, dapibus ac facilisis in, egestas eget quam.',
+                });
+            }, 2000);
         });
 
         return promise;

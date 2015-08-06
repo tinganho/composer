@@ -30,6 +30,10 @@ gulp.task('sass', function () {
     .pipe(gulp.dest('public/styles'));
 });
 
+gulp.task('sass:watch', function () {
+  gulp.watch('./**/*.scss', ['sass']);
+});
+
 gulp.task('compile-typescript-files', ['clean'], function(next) {
     exec('tsc', function(err, stdout, stderr) {
         console.log(stdout);
@@ -73,7 +77,7 @@ gulp.task('image-tests', ['compile'], function(next) {
 });
 
 gulp.task('selenium', function(next) {
-    exec('java -jar bin/selenium-server-standalone-2.46.0.jar');
+    exec('java -jar bin/selenium-server-standalone-2.46.0.jar -Dwebdriver.chrome.driver=bin/chromedriver');
     console.log('Selenium server started. Press CTRL + C to close it.');
 });
 

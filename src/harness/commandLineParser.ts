@@ -1,6 +1,4 @@
 
-/// <reference path='../../typings/glob/glob.d.ts'/>
-
 import glob = require('glob');
 import { CharacterCodes, CommandLineOptions, CommandLineOption} from './types';
 import { Map } from '../types';

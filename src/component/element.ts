@@ -1,7 +1,6 @@
 
 /// <reference path='./component.d.ts' />
 
-import { Component } from './component';
 import { ComposerDOMElement } from './DOMElement';
 import Debug from '../debug';
 import * as u from './utils';
@@ -26,7 +25,7 @@ export function getInstantiatedComponents(renderId: number): u.Map<Component<any
 }
 
 export function createElement(
-    element: string | (new(props: Props, children: Child[]) => Component<any, any, any>),
+    element: string | (new<P extends Props, S, E extends Elements>(props: Props, children: Child[]) => Component<P, S, E>),
     props: any,
     ...children: Child[]): JSX.Element {
 

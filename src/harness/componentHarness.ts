@@ -1,6 +1,4 @@
 
-/// <reference path='../component/component.d.ts' />
-
 import React = require('../component/component');
 import { Component } from '../component/component';
 

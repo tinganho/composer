@@ -16,15 +16,13 @@ declare interface DocumentProps extends Props {
 }
 
 declare abstract class ComposerComponent<P extends Props, S, E extends Elements> extends Component<P, S, E> {
-    
+
     /**
      * This static property is a native readonly JS property and it is automatically set to the
      * constructor's name.
      */
     public static name: string;
-
     public id: string;
-
     public remove(): Promise<void>;
 }
 

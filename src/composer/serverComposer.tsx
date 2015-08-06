@@ -4,8 +4,6 @@
 /// <reference path='../../typings/glob/glob.d.ts'/>
 /// <reference path='../../node_modules/typescript/bin/typescript.d.ts'/>
 /// <reference path='../client/router.d.ts'/>
-/// <reference path='../component/layerDeclarations.d.ts'/>
-/// <reference path='../component/layerComponents.d.ts'/>
 
 import * as React from '../component/element';
 import { Express, Request, Response } from 'express';
@@ -22,7 +20,14 @@ import {
     ComposerLayout,
     ComposerDocument,
     ComposerContent,
-    ComposerComponent
+    ComposerComponent,
+    PageLayerDeclaration,
+    ContentDeclaration,
+    LayoutDeclaration,
+    DocumentDeclaration,
+    StoredContentDeclarations,
+    ProvidedContentDeclarations,
+
 } from '../component/layerComponents';
 
 export interface Pages {
@@ -38,14 +43,14 @@ export interface PlatformDetect {
     detect(req: Request): boolean;
 }
 
-export function isDeclaration<T extends PageLayerDeclaration, U extends new(props: any, children?: any) => ComposerComponent<any, any, any>>(decl: T | U): decl is T {
+export function isDeclaration<T extends PageLayerDeclaration, U extends new<P extends Props, S, E extends Elements>(props?: P, children?: Child[]) => ComposerComponent<P, S, E>>(decl: T | U): decl is T {
     if ((decl as T).importPath) {
         return true;
     }
     return false;
 }
 
-export function getClassName(c: new(props: any, children?: any) => ComposerComponent<any, any, any>): string {
+export function getClassName(c: new<P extends Props, S, E extends Elements>(props?: P, children?: Child[]) => ComposerComponent<P, S, E>): string {
     return (c as any).name;
 }
 

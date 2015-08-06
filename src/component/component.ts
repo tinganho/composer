@@ -51,6 +51,8 @@ export abstract class Component<P extends Props, S, E extends Elements> {
 
     public lastRenderId: number;
 
+    public promises: any[];
+
     constructor(
         props?: P,
         children?: Child[]) {
@@ -114,8 +116,17 @@ export abstract class Component<P extends Props, S, E extends Elements> {
      * it is now suitable to show them with this function. Show is also called whenever
      * a page request failed to unhide components.
      */
-    public show(): Promise<void> {
-        return Promise.resolve(undefined);
+    public show(): Promise<any> {
+        this.promises = [];
+        this.recursivelyCallMethod(this, 'customElements', 'show');
+        return Promise.all(this.promises);
+    }
+
+    public recursivelyCallMethod(target: any, repetitveAccessor: string, method: string): void {
+        for (let c in target[repetitveAccessor]) {
+            this.promises.push(target[repetitveAccessor][c][method]());
+        }
+        this.recursivelyCallMethod(target[repetitveAccessor], repetitveAccessor, method);
     }
 
     /**
@@ -141,10 +152,6 @@ export abstract class Component<P extends Props, S, E extends Elements> {
      */
     public bindInteractions(): void {
 
-    }
-
-    public releaseLastRender(): void {
-        unsetInstantiatedComponents(this.lastRenderId);
     }
 
     /**
@@ -185,3 +192,5 @@ export abstract class Component<P extends Props, S, E extends Elements> {
         return rootElement;
     }
 }
+
+export default Component;

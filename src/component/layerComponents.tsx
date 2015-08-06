@@ -1,10 +1,35 @@
 
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
-/// <reference path='./component.d.ts'/>
 /// <reference path='./layerComponents.d.ts' />
+/// <reference path='./component.d.ts' />
 
 import React = require('./element');
 import { Component } from './component';
+
+export interface PageLayerDeclaration {
+    importPath: string;
+    component: new<P extends Props, S, E extends Elements>(props?: P, children?: Child[]) => Component<P, S, E>;
+}
+
+export interface DocumentDeclaration extends PageLayerDeclaration {
+    component: new<P extends Props, S, E extends Elements>(props?: P, children?: Child[]) => ComposerDocument<P, S, E>;
+}
+
+export interface LayoutDeclaration extends PageLayerDeclaration {
+    component: new<P extends Props, S, E extends Elements>(props?: P, children?: Child[]) => ComposerLayout<P, S, E>;
+}
+
+export interface ContentDeclaration extends PageLayerDeclaration {
+    component: new<P extends Props, S, E extends Elements>(props?: P, children?: Child[]) => ComposerContent<P, S, E>;
+}
+
+export interface StoredContentDeclarations {
+    [index: string]: ContentDeclaration;
+}
+
+export interface ProvidedContentDeclarations {
+    [index: string]: ContentDeclaration | (new<P extends Props, S, E extends Elements>(props?:P, children?: Child[]) => ComposerContent<P, S, E>);
+}
 
 export abstract class ComposerComponent<P extends Props, S, E extends Elements> extends Component<P, S, E> {
 
@@ -29,7 +54,6 @@ export abstract class ComposerContent<P extends Props, S, E extends Elements> ex
         this.root.remove();
         return Promise.resolve(undefined);
     }
-
 }
 
 interface LinkProps extends Props {

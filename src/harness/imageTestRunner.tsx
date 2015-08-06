@@ -1,20 +1,16 @@
 
-/// <reference path='../../typings/mocha/mocha.d.ts'/>
-/// <reference path='../../typings/express/express.d.ts'/>
-/// <reference path='../../typings/morgan/morgan.d.ts'/>
-/// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
-/// <reference path='../../typings/image-diff/image-diff.d.ts'/>
-/// <reference path='../../typings/rimraf/rimraf.d.ts'/>
-/// <reference path='../../typings/selenium-webdriver/selenium-webdriver.d.ts'/>
-/// <reference path='../component/layerDeclarations.d.ts'/>
-
 import { CommandLineOptions, Map } from './types';
 import imageDiff = require('image-diff');
 import logger = require('morgan');
 import { cf } from '../../conf/conf';
 import { ServerComposer, PlatformDetect } from '../composer/serverComposer';
 import { ModuleKind } from '../composer/webBindingsEmitter';
-import { ComposerDocument } from '../component/layerComponents';
+import {
+    ComposerDocument,
+    DocumentDeclaration,
+    LayoutDeclaration,
+    ContentDeclaration,
+    ComposerContent } from '../component/layerComponents';
 import { sync as glob } from 'glob';
 import * as path from 'path';
 import express = require('express');
@@ -86,7 +82,7 @@ export default class ImageTestRunner {
             },
             useDefaultContent: function(content: string): ContentDeclaration {
                 return {
-                    component: (contentComponents as any)[content] as new(props: any, children: any) => ComposerContent<any, any, any>,
+                    component: (contentComponents as any)[content] as new<P extends Props, S, E extends Elements>(props: any, children: any) => ComposerContent<P, S, E>,
                     importPath: 'test/imageTests/defaultComponents/contents',
                 }
             },
@@ -163,7 +159,7 @@ export default class ImageTestRunner {
         browserDirectives: BrowserDirectives,
         callback: () => void) {
 
-        Debug.debug(`Testing ${folderName}.`);
+        Debug.log(`Testing ${folderName}.`);
 
         let resultFilePath = path.join(this.root, `test/imageTests/baselines/local/${folderName}.png`);
         let expectedFilePath = path.join(this.root, `test/imageTests/baselines/reference/${folderName}.png`);
@@ -175,6 +171,7 @@ export default class ImageTestRunner {
             os_version: 'Yosemite',
             resolution: `${cf.DEFAULT_SCREEN_RESOLUTION.WIDTH}x${cf.DEFAULT_SCREEN_RESOLUTION.HEIGHT}`
         });
+
         webdriverTest.get(`http://${cf.HOST}:${cf.PORT}${initialRoute}`)
             .wait({ css : 'html' })
 
@@ -199,9 +196,9 @@ export default class ImageTestRunner {
                         diffImage: diffFilePath,
                     },
                     (err, imagesAreSame) => {
-                        Debug.debug('Stopping server.');
+                        Debug.log('Stopping server.');
                         serverComposer.stop(err => {
-                            Debug.debug('Stopped server.');
+                            Debug.log('Stopped server.');
                             if (imagesAreSame) {
                                 removeFolderOrFile(diffFilePath);
                             }
