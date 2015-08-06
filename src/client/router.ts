@@ -28,6 +28,7 @@ export class Router {
     public hasPushState = window.history && !!window.history.pushState;
     public routingInfoIndex: { [index: string]: Page } = {};
     public routes: Route[] = [];
+    public currentRegions: string[] = [];
     public onPushState: (route: string) => void;
 
     constructor(public appName: string, pages: Page[], public pageComponents: PageComponents) {
@@ -85,6 +86,7 @@ export class Router {
 this component is properly named?`);
             }
             try {
+                this.currentRegions.push(content.region);
                 placeholderContents[content.region] = React.createElement((window as any)[this.appName].Component.Content[content.className], jsonElement.innerText !== '' ? JSON.parse(jsonElement.innerText).data : {}, null);
             }
             catch(err) {
@@ -101,8 +103,9 @@ this component is properly named?`);
 
     private bindLayoutAndContents(page: Page, contents: Contents) {
         this.currentLayoutComponent = new (this as any).pageComponents.Layout[page.layout.className](contents);
-        this.currentContents = this.currentLayoutComponent.customElements as any;
         this.currentLayoutComponent.bindDOM();
+        this.currentContents = this.currentLayoutComponent.customElements as any;
+        console.log(this.currentContents)
     }
 
     private renderLayoutAndContents(page: Page, contents: Contents) {
@@ -116,36 +119,49 @@ this component is properly named?`);
         return new Promise<void>((resolve, reject) => {
             let currentNumberOfRemoves = 0;
             let expectedNumberOfRemoves = 0;
+            let usedRegions: string[] = [];
 
             if (!this.currentContents || Object.keys(this.currentContents).length === 0) {
-                return reject(Error('You have not set any content for the current page.'));
+                return reject(new Error('You have not set any content for the current page.'));
             }
-
+            console.log(this.currentContents)
             for (var currentContent in this.currentContents) {
                 var removeCurrentContent = true;
                 for (let nextContent of nextPage.contents) {
+                    console.log(nextContent.className , currentContent.constructor.name)
                     if (nextContent.className === currentContent.constructor.name) {
                         removeCurrentContent = false;
+                        usedRegions.push(nextContent.region);
                     }
                 }
 
                 if (!(this as any).currentContents[currentContent][method]) {
-                    reject(Error('You have not implemented a hide or remove method for \'' + currentContent.constructor.name + '\''))
+                    return reject(new Error('You have not implemented a hide or remove method for \'' + currentContent.constructor.name + '\''))
                 }
 
-                if (removeCurrentContent) {
-                    expectedNumberOfRemoves++;
-                    (this as any).currentContents[currentContent][method]()
-                        .then(() => {
-                            currentNumberOfRemoves++;
-                            if (method === 'remove') {
-                                delete this.currentContents[currentContent];
-                            }
-                            if (currentNumberOfRemoves === expectedNumberOfRemoves) {
-                                resolve();
-                            }
-                        });
-                }
+                ((currentContent: string) => {
+                    if (removeCurrentContent) {
+                        expectedNumberOfRemoves++;
+                        (this as any).currentContents[currentContent][method]()
+                            .then(() => {
+                                currentNumberOfRemoves++;
+                                if (method === 'remove') {
+                                    for (let r of this.currentRegions) {
+
+                                        // Dispose current regions which are not used on the next page.
+                                        // We need dispose them because layout needs to call bindDOM correctly.
+                                        if (usedRegions.indexOf(r) === -1) {
+                                            this.currentLayoutComponent.unsetProp(r);
+                                        }
+                                    }
+                                }
+                                if (currentNumberOfRemoves === expectedNumberOfRemoves) {
+                                    resolve();
+                                }
+                            });
+                    }
+                })(currentContent)
+
             }
         });
     }
@@ -202,7 +218,7 @@ this component is properly named?`);
                                 currentNumberOfNetworkRequests++;
                                 if (currentNumberOfNetworkRequests === expectedNumberOfNetworkRequest) {
                                     let LayoutComponentClass = (this as any).pageComponents.Layout[page.layout.className];
-                                    if (LayoutComponentClass.id !== this.currentLayoutComponent.id) {
+                                    if (LayoutComponentClass.name !== this.currentLayoutComponent.id) {
                                         let layoutComponent = new LayoutComponentClass(contents);
                                         this.currentLayoutComponent.remove();
                                         document.getElementById('LayoutRegion').appendChild(layoutComponent.toDOM());
@@ -213,11 +229,15 @@ this component is properly named?`);
                                         this.loopThroughIrrelevantCurrentContentsAndExec(page, 'remove').then(() => {
                                             for (let c in contents) {
                                                 let content = (contents as any)[c];
-                                                let region = document.getElementById(c + 'Region');
+                                                let region = document.getElementById(c);
+                                                if (!region) {
+                                                    throw new Error('Region \'' + c + '\' is missing');
+                                                }
                                                 this.currentLayoutComponent.setProp(c, content);
                                                 region.appendChild(content.toDOM().frag);
                                             }
 
+                                            this.currentLayoutComponent.hasBoundDOM = false;
                                             this.currentLayoutComponent.bindDOM();
                                             this.currentContents = this.currentLayoutComponent.customElements as CurrentContents;
                                             for (let c in this.currentContents) {

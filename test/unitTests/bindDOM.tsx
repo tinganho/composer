@@ -14,7 +14,7 @@ interface E extends Elements { }
 
 describe('Bind DOM', () => {
     it('root element', () => {
-        prepareHTML('<div id="i1"></div>');
+        prepareHTML('<div id="C1i1"></div>');
         class C1 extends Component<P, S, E> {
             public render(): JSX.Element {
                 return (<div></div>);
@@ -23,11 +23,11 @@ describe('Bind DOM', () => {
 
         let c1 = new C1({ id: 'i1'});
         c1.bindDOM();
-        expect(c1.root.id).to.equal('i1');
+        expect(c1.root.id).to.equal('C1i1');
     });
 
     it('referenced element', () => {
-        prepareHTML('<div id="i1"><div data-ref="a">a</div></div>');
+        prepareHTML('<div id="C1i1"><div data-ref="a">a</div></div>');
         interface E extends Elements {
             a: DOMElement;
         }
@@ -43,7 +43,7 @@ describe('Bind DOM', () => {
     });
 
     it('one custom element', () => {
-        prepareHTML('<div id="i1"><div id="i2"></div></div>');
+        prepareHTML('<div id="C1i1"><div id="C2i2"></div></div>');
         interface E extends Elements {
             a: DOMElement;
         }
@@ -61,11 +61,11 @@ describe('Bind DOM', () => {
         let c1 = new C1({ id: 'i1'});
         c1.bindDOM();
         expect(Object.keys(c1.customElements).length).to.equal(1);
-        expect(c1.customElements['i2'].props.id).to.equal('i2');
+        expect(c1.customElements['C2i2'].props.id).to.equal('i2');
     });
 
     it('multiple flat custom element', () => {
-        prepareHTML('<div id="i1"><div id="i2"></div><div id="i3"></div></div>');
+        prepareHTML('<div id="C1i1"><div id="C2i2"></div><div id="C3i3"></div></div>');
         interface E extends Elements {
             a: DOMElement;
         }
@@ -88,12 +88,12 @@ describe('Bind DOM', () => {
         let c1 = new C1({ id: 'i1'});
         c1.bindDOM();
         expect(Object.keys(c1.customElements).length).to.equal(2);
-        expect(c1.customElements['i2'].props.id).to.equal('i2');
-        expect(c1.customElements['i3'].props.id).to.equal('i3');
+        expect(c1.customElements['C2i2'].props.id).to.equal('i2');
+        expect(c1.customElements['C3i3'].props.id).to.equal('i3');
     });
 
     it('multiple nested custom element', () => {
-        prepareHTML('<div id="i1"><div id="i2"><div id="i3"></div></div></div>');
+        prepareHTML('<div id="C1i1"><div id="C2i2"><div id="C3i3"></div></div></div>');
         interface E extends Elements {
             a: DOMElement;
         }
@@ -116,8 +116,8 @@ describe('Bind DOM', () => {
         let c1 = new C1({ id: 'i1'});
         c1.bindDOM();
         expect(Object.keys(c1.customElements).length).to.equal(1);
-        expect(c1.customElements['i2'].props.id).to.equal('i2');
-        expect(Object.keys(c1.customElements['i2'].customElements).length).to.equal(1);
-        expect(c1.customElements['i2'].customElements['i3'].props.id).to.equal('i3');
+        expect(c1.customElements['C2i2'].props.id).to.equal('i2');
+        expect(Object.keys(c1.customElements['C2i2'].customElements).length).to.equal(1);
+        expect(c1.customElements['C2i2'].customElements['C3i3'].props.id).to.equal('i3');
     });
 });

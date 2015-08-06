@@ -52,7 +52,10 @@ export function createElement(
             // Remove this render on next tick.
             setTimeout(() => {
                 delete instantiatedComponents[renderId];
-            }, 0);
+            }, 50);
+        }
+        if (typeof element === 'undefined') {
+            return renderId;
         }
         if (!instantiatedComponents[renderId]) {
             instantiatedComponents[renderId] = {};
@@ -73,7 +76,7 @@ export function createElement(
 
             if (!component.hasRenderedFirstElement) {
                 component.root = new ComposerDOMElement(root);
-                root.setAttribute('id', component.props.id);
+                root.setAttribute('id', component.id);
                 component.hasRenderedFirstElement = true;
             }
 
@@ -125,14 +128,15 @@ export function createElement(
             }
         }, (element, renderId) => {
             let elementComponent: Component<any, any, any>;
+            let elementComponentId = props.id ? (element as any).name + props.id : (element as any).name;
             if (instantiatedComponents[renderId] &&
-                instantiatedComponents[renderId][props.id]) {
+                instantiatedComponents[renderId][elementComponentId]) {
 
-                elementComponent = instantiatedComponents[renderId][props.id];
+                elementComponent = instantiatedComponents[renderId][elementComponentId];
             }
             else {
                 elementComponent = new element(props, children);
-                instantiatedComponents[renderId][props.id] = elementComponent;
+                instantiatedComponents[renderId][elementComponent.id] = elementComponent;
             }
             frag.appendChild(elementComponent.toDOM());
 
@@ -142,7 +146,7 @@ export function createElement(
             // root custom element, becase the component class calls `setComponent`
             // and passes the component to this closure.
             if (component) {
-                component.customElements[elementComponent.props.id] = elementComponent;
+                component.customElements[elementComponent.id] = elementComponent;
             }
             else {
                 component = elementComponent;
@@ -160,7 +164,7 @@ export function createElement(
             else {
                 root.appendChild(child.toDOM(renderId).frag);
                 let childComponent = child.getComponent();
-                component.customElements[childComponent.props.id] = childComponent;
+                component.customElements[childComponent.id] = childComponent;
             }
         }
     }
@@ -177,7 +181,7 @@ export function createElement(
             frag = `<${element}`;
 
             if (!component.hasRenderedFirstElement) {
-                frag += ` id="${component.props.id}"`;
+                frag += ` id="${component.id}"`;
             }
 
             for (let p in props) {
@@ -234,10 +238,11 @@ export function createElement(
         }
         else {
             let customElement: Component<any, any, any>;
+            let elementComponentId = props.id ? (element as any).name + props.id : (element as any).name;
             if (instantiatedComponents[renderId] &&
-                instantiatedComponents[renderId][props.id]) {
+                instantiatedComponents[renderId][elementComponentId]) {
 
-                customElement = instantiatedComponents[renderId][props.id]
+                customElement = instantiatedComponents[renderId][elementComponentId]
             }
             else {
                 customElement = new element(props, children);
@@ -262,9 +267,9 @@ export function createElement(
      */
     function bindDOM(renderId?: number): number {
         renderId = handleDOMAction(renderId, (element, renderId) => {
-            let root = document.getElementById(component.props.id);
+            let root = document.getElementById(component.id);
             if (!root) {
-                Debug.error(`Could not bind root element '{0}'.`, component.props.id);
+                Debug.error(`Could not bind root element '{0}'.`, component.id);
             }
             component.root = new ComposerDOMElement(root);
 
@@ -301,24 +306,25 @@ export function createElement(
             }
         }, (element, renderId) => {
             let elementComponent: Component<any, any, any>;
+            let elementComponentId = props.id ? (element as any).name + props.id : (element as any).name;
             if (instantiatedComponents[renderId] &&
-                instantiatedComponents[renderId][props.id]) {
+                instantiatedComponents[renderId][elementComponentId]) {
 
-                elementComponent = instantiatedComponents[renderId][props.id]
+                elementComponent = instantiatedComponents[renderId][elementComponentId]
             }
             else {
                 elementComponent = new element(props, children);
-                instantiatedComponents[renderId][props.id] = elementComponent;
+                instantiatedComponents[renderId][elementComponent.id] = elementComponent;
             }
             elementComponent.bindDOM(renderId);
 
             // We want to add a root custom element too. The children custom element
             // is added above. We do a check of the component variable. There is no
             // component for children custom elements, but there are one for the a
-            // root custom element, becase the component class calls `setComponent`
-            // and passes the component to this closure.
+            // root custom element, because the component class calls `setComponent`
+            // and passes the component to this `createElement` closure.
             if (component) {
-                component.customElements[elementComponent.props.id] = elementComponent;
+                component.customElements[elementComponent.id] = elementComponent;
             }
             else {
                 component = elementComponent;
@@ -335,7 +341,7 @@ export function createElement(
             else {
                 child.bindDOM(renderId);
                 let childComponent = child.getComponent();
-                component.customElements[childComponent.props.id] = childComponent;
+                component.customElements[childComponent.id] = childComponent;
             }
         }
     }
@@ -357,7 +363,7 @@ export function createElement(
             }
         }, (element, renderId) => {
             let elementComponent = new element(props, children);
-            instantiatedComponents[renderId][props.id] = elementComponent;
+            instantiatedComponents[renderId][elementComponent.id] = elementComponent;
             elementComponent.instantiateComponents(renderId);
         });
 

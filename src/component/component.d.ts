@@ -44,6 +44,7 @@ declare abstract class Component<P extends Props, S, E> {
     public root: DOMElement;
     public props: P;
     public states: S;
+    public id: string;
     public l10ns: any;
     public children: Child[];
     public elements: Elements;
@@ -53,10 +54,11 @@ declare abstract class Component<P extends Props, S, E> {
     public instantiatedComponents: Components;
     public lastRenderId: number;
 
-    constructor(props: P, children?: Child[]);
+    constructor(props?: P, children?: Child[]);
 
     public setProp(name: string, value: any): void;
     public setProps(props: P): void;
+    public unsetProp(name: string): void;
     public abstract render(): JSX.Element;
     public remove(): Promise<void>;
     public hide(): Promise<void>;

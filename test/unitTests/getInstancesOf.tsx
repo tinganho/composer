@@ -32,8 +32,8 @@ describe('Get instances of', () => {
         }
 
         let c1 = new C1({ id: 'i1' });
-        let { i2 } = c1.getInstancesOf('i2');
-        expect((i2 as C2).result()).to.equal('success');
+        let { C2i2 } = c1.getInstancesOf('C2i2');
+        expect((C2i2 as C2).result()).to.equal('success');
     });
 
     it('get multiple flat instances', () => {
@@ -60,9 +60,9 @@ describe('Get instances of', () => {
         }
 
         let c1 = new C1({ id: 'i1' });
-        let { i2, i3 } = c1.getInstancesOf('i2', 'i3');
-        expect((i2 as C2).result()).to.equal('success');
-        expect((i3 as C2).result()).to.equal('success');
+        let { C2i2, C3i3 } = c1.getInstancesOf('C2i2', 'C3i3');
+        expect((C2i2 as C2).result()).to.equal('success');
+        expect((C3i3 as C2).result()).to.equal('success');
     });
 
     it('get multiple nested instances', () => {
@@ -89,9 +89,9 @@ describe('Get instances of', () => {
         }
 
         let c1 = new C1({ id: 'i1' });
-        let { i2, i3 } = c1.getInstancesOf('i2', 'i3');
-        expect((i2 as C2).result()).to.equal('success');
-        expect((i3 as C2).result()).to.equal('success');
+        let { C2i2, C3i3 } = c1.getInstancesOf('C2i2', 'C3i3');
+        expect((C2i2 as C2).result()).to.equal('success');
+        expect((C3i3 as C2).result()).to.equal('success');
     });
 
 
@@ -111,9 +111,9 @@ describe('Get instances of', () => {
         }
 
         let c1 = new C1({ id: 'i1' });
-        let { i2 } = c1.getInstancesOf('i2');
-        (i2 as C2).result();
-        expect(c1.toString()).to.equal('<div id="i2">text</div>');
+        let { C2i2 } = c1.getInstancesOf('C2i2');
+        (C2i2 as C2).result();
+        expect(c1.toString()).to.equal('<div id="C2i2">text</div>');
     });
 
     it('should reuse instances on to DOM', () => {
@@ -132,13 +132,13 @@ describe('Get instances of', () => {
         }
 
         let c1 = new C1({ id: 'i1' });
-        let { i2 } = c1.getInstancesOf('i2');
-        (i2 as C2).result();
-        expect(getMountedDOMHTMLString(c1.toDOM(c1.lastRenderId))).to.equal('<div id="i2">text</div>');
+        let { C2i2 } = c1.getInstancesOf('C2i2');
+        (C2i2 as C2).result();
+        expect(getMountedDOMHTMLString(c1.toDOM(c1.lastRenderId))).to.equal('<div id="C2i2">text</div>');
     });
 
     it('should reuse instances on bind DOM', () => {
-        prepareHTML('<div id="i3">text</div>');
+        prepareHTML('<div id="C2i3">text</div>');
         class C1 extends Component<P, S, E> {
             public render(): JSX.Element {
                 return (<C2 id="i2"></C2>);
@@ -154,9 +154,9 @@ describe('Get instances of', () => {
         }
 
         let c1 = new C1({ id: 'i1' });
-        let { i2 } = c1.getInstancesOf('i2');
-        (i2 as C2).result();
-        i2.bindDOM(c1.lastRenderId);
-        expect(i2.root.getHTML()).to.equal('text');
+        let { C2i2 } = c1.getInstancesOf('C2i2');
+        (C2i2 as C2).result();
+        C2i2.bindDOM(c1.lastRenderId);
+        expect(C2i2.root.getHTML()).to.equal('text');
     });
 });

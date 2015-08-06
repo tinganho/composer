@@ -23,6 +23,13 @@ export class NavigationBar extends ComposerContent<NavigationBarProps, {}, Navig
         return promise;
     }
 
+    public bindDOM(): void {
+        super.bindDOM();
+        this.root.onClick(() => {
+            alert('hej')
+        });
+    }
+
     public render() {
         return (
             <div class='NavigationBar'>{this.props.a + this.props.b}</div>

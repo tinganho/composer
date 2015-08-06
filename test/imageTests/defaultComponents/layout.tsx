@@ -11,15 +11,13 @@ interface Regions extends Props {
 }
 
 export class Layout extends ComposerLayout<Regions, {}, Elements> {
-    public id = 'composer-layout';
-
     public render() {
         return (
-            <div id='Layout'>
-                <header id='TopBarRegion'>
+            <div>
+                <header id='TopBar'>
                     {this.props.TopBar}
                 </header>
-                <div id='BodyRegion'>
+                <div id='Body'>
                     {this.props.Body}
                 </div>
             </div>

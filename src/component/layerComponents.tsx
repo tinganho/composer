@@ -18,11 +18,7 @@ export abstract class ComposerComponent<P extends Props, S, E extends Elements> 
 }
 
 export abstract class ComposerDocument<P extends DocumentProps, S, E extends Elements> extends ComposerComponent<P, S, E> {}
-export abstract class ComposerLayout<P extends Props, S, E extends Elements> extends ComposerComponent<P, S, E> {
-    public get id() {
-        return (this as any).constructor.id;
-    }
-}
+export abstract class ComposerLayout<P extends Props, S, E extends Elements> extends ComposerComponent<P, S, E> {}
 export abstract class ComposerContent<P extends Props, S, E extends Elements> extends ComposerComponent<P, S, E> {
     public static fetch<TRequest, TResult>(request: TRequest): Promise<TResult> { return }
 

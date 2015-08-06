@@ -14,15 +14,26 @@ interface E extends Elements { }
 
 describe('Render to DOM', () => {
     describe('Element Properties', () => {
-        it('id', () => {
+        it('provided id', () => {
             class C1 extends Component<P, S, E> {
                 public render(): JSX.Element {
                     return (<div></div>);
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i"></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"></div>');
+        });
+
+        it('non-provided id', () => {
+            class C1 extends Component<P, S, E> {
+                public render(): JSX.Element {
+                    return (<div></div>);
+                }
+            }
+
+            let c1 = new C1();
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1"></div>');
         });
 
         it('one property', () => {
@@ -32,8 +43,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i" data-a="a"></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1" data-a="a"></div>');
         });
 
         it('multiple properties', () => {
@@ -43,8 +54,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i" data-a="a" data-b="b"></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1" data-a="a" data-b="b"></div>');
         });
 
         it('element reference', () => {
@@ -57,8 +68,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i" data-ref="a"></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1" data-ref="a"></div>');
             expect(c1.elements.a.addClass).to.not.be.undefined;
         });
 
@@ -70,7 +81,7 @@ describe('Render to DOM', () => {
             }
 
             let c1 = new C1({ id: 'i1'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i1" auto-complete="true"></div>');
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1" auto-complete="true"></div>');
         });
     });
 
@@ -82,8 +93,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i"><div></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"><div></div></div>');
         });
 
         it('component root element', () => {
@@ -98,8 +109,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i2"></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C2i2"></div>');
         });
     });
 
@@ -111,8 +122,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i"><div></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"><div></div></div>');
         });
 
         it('root element with multiple flat intrinsic child elements', () => {
@@ -122,8 +133,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i"><div></div><div></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"><div></div><div></div></div>');
         });
 
         it('root element with multiple nested intrinsic child elements', () => {
@@ -133,8 +144,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i"><div><div></div></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"><div><div></div></div></div>');
         });
 
         it('`this.children` reference without passing children', () => {
@@ -149,8 +160,8 @@ describe('Render to DOM', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i"><div id="i2"></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"><div id="C2i2"></div></div>');
         });
 
         it('root element with one child custom element', () => {
@@ -166,7 +177,7 @@ describe('Render to DOM', () => {
             }
 
             let c1 = new C1({ id: 'i1'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i1"><div id="i2"></div></div>');
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"><div id="C2i2"></div></div>');
         });
 
         it('root element with multiple flat child custom element', () => {
@@ -187,7 +198,7 @@ describe('Render to DOM', () => {
             }
 
             let c1 = new C1({ id: 'i1'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i1"><div id="i2"></div><div id="i3"></div></div>');
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"><div id="C2i2"></div><div id="C3i3"></div></div>');
         });
 
         it('root element with multiple nested child custom element', () => {
@@ -208,7 +219,7 @@ describe('Render to DOM', () => {
             }
 
             let c1 = new C1({ id: 'i1'});
-            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="i1"><div id="i2"><div id="i3"></div></div></div>');
+            expect(getMountedDOMHTMLString(c1.toDOM())).to.equal('<div id="C1i1"><div id="C2i2"><div id="C3i3"></div></div></div>');
         });
     });
 
@@ -228,7 +239,7 @@ describe('Render to DOM', () => {
             let c1 = new C1({ id: 'i1'});
             c1.toDOM();
             expect(Object.keys(c1.customElements).length).to.equal(1);
-            expect(c1.customElements['i2'].toString()).to.equal('<div id="i2"></div>');
+            expect(c1.customElements['C2i2'].toString()).to.equal('<div id="C2i2"></div>');
         });
 
         it('multiple flat custom elements', () => {
@@ -255,7 +266,7 @@ describe('Render to DOM', () => {
 
             let c1 = new C1({ id: 'i1'});
             c1.toDOM();
-            expect(c1.customElements['i2'].toString()).to.equal('<div id="i2"><div id="i3"></div><div id="i4"></div></div>');
+            expect(c1.customElements['C2i2'].toString()).to.equal('<div id="C2i2"><div id="C3i3"></div><div id="C4i4"></div></div>');
         });
 
         it('multiple nested custom elements', () => {
@@ -277,7 +288,7 @@ describe('Render to DOM', () => {
 
             let c1 = new C1({ id: 'i1'});
             c1.toDOM();
-            expect(c1.customElements['i2'].toString()).to.equal('<div id="i2"><div id="i3"></div></div>');
+            expect(c1.customElements['C2i2'].toString()).to.equal('<div id="C2i2"><div id="C3i3"></div></div>');
         });
     });
 

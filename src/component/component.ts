@@ -52,14 +52,11 @@ export abstract class Component<P extends Props, S, E extends Elements> {
     public lastRenderId: number;
 
     constructor(
-        props: P,
+        props?: P,
         children?: Child[]) {
 
-        this.props = u.extend({}, u.extend(props, this.props)) as P;
+        this.props = u.extend({}, u.extend(props || {}, this.props)) as P;
 
-        if (!this.props.id) {
-            this.props.id = (this as any).constructor.name;
-        }
         this.children = children;
         (this as any).elements = {}
     }
@@ -69,15 +66,11 @@ export abstract class Component<P extends Props, S, E extends Elements> {
      */
     public abstract render(): JSX.Element;
 
-    public setProps(props: P) {
+    public setProps(props: P): void {
         this.props = props;
-
-        if (!this.props.id) {
-            this.props.id = (this as any).constructor.name;
-        }
     }
 
-    public setProp(name: string, value: any) {
+    public setProp(name: string, value: any): void {
         if (this.props) {
             this.props[name] = value;
         }
@@ -86,6 +79,14 @@ export abstract class Component<P extends Props, S, E extends Elements> {
                 [name]: value
             }
         }
+    }
+
+    public unsetProp(name: string): void {
+        delete this.props[name];
+    }
+
+    public get id() {
+        return this.props.id ? (this as any).constructor.name + this.props.id : (this as any).constructor.name;
     }
 
     /**
@@ -125,9 +126,9 @@ export abstract class Component<P extends Props, S, E extends Elements> {
         return Promise.resolve(undefined);
     }
 
-    /* @internal */
     public bindDOM(renderId?: number): void {
         if (!this.hasBoundDOM) {
+            this.customElements = {};
             this.lastRenderId = this.renderAndSetComponent().bindDOM(renderId);
             this.hasBoundDOM = true;
         }
@@ -149,7 +150,7 @@ export abstract class Component<P extends Props, S, E extends Elements> {
     /**
      * Get instances of components before they are rendered.
      */
-    public getInstancesOf<R>(...components: string[]): Components {
+    public getInstancesOf(...components: string[]): Components {
         let componentBuilder: Components = {};
         this.lastRenderId = this.renderAndSetComponent().instantiateComponents();
         let instantiatedComponents = getInstantiatedComponents(this.lastRenderId);

@@ -21,7 +21,7 @@ describe('Render to string', () => {
             }
 
             let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i"></div>')
+            expect(c1.toString()).to.equal('<div id="C1i"></div>')
         });
 
         it('one property', () => {
@@ -32,7 +32,7 @@ describe('Render to string', () => {
             }
 
             let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i" data-a="a"></div>');
+            expect(c1.toString()).to.equal('<div id="C1i" data-a="a"></div>');
         });
 
         it('multiple properties', () => {
@@ -42,8 +42,8 @@ describe('Render to string', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i" data-a="a" data-b="b"></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(c1.toString()).to.equal('<div id="C1i1" data-a="a" data-b="b"></div>');
         });
 
         it('element reference', () => {
@@ -53,8 +53,8 @@ describe('Render to string', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i" data-ref="a"></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(c1.toString()).to.equal('<div id="C1i1" data-ref="a"></div>');
         });
 
         it('camel-cased props to dashed props', () => {
@@ -65,7 +65,7 @@ describe('Render to string', () => {
             }
 
             let c1 = new C1({ id: 'i1'});
-            expect(c1.toString()).to.equal('<div id="i1" auto-complete></div>');
+            expect(c1.toString()).to.equal('<div id="C1i1" auto-complete></div>');
         });
     });
 
@@ -77,8 +77,8 @@ describe('Render to string', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i"><div></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(c1.toString()).to.equal('<div id="C1i1"><div></div></div>');
         });
 
         it('component root element', () => {
@@ -93,8 +93,8 @@ describe('Render to string', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i2"></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(c1.toString()).to.equal('<div id="C2i2"></div>');
         });
     });
 
@@ -111,8 +111,8 @@ describe('Render to string', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i"><div id="i2"></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(c1.toString()).to.equal('<div id="C1i1"><div id="C2i2"></div></div>');
         });
 
         it('root element with one intrinsic child element', () => {
@@ -122,8 +122,8 @@ describe('Render to string', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i"><div></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(c1.toString()).to.equal('<div id="C1i1"><div></div></div>');
         });
 
         it('root element with multiple flat intrinsic child elements', () => {
@@ -133,8 +133,8 @@ describe('Render to string', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i"><div></div><div></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(c1.toString()).to.equal('<div id="C1i1"><div></div><div></div></div>');
         });
 
         it('root element with multiple nested intrinsic child elements', () => {
@@ -144,8 +144,8 @@ describe('Render to string', () => {
                 }
             }
 
-            let c1 = new C1({ id: 'i'});
-            expect(c1.toString()).to.equal('<div id="i"><div><div></div></div></div>');
+            let c1 = new C1({ id: 'i1'});
+            expect(c1.toString()).to.equal('<div id="C1i1"><div><div></div></div></div>');
         });
 
         it('root element with one child custom element', () => {
@@ -161,7 +161,7 @@ describe('Render to string', () => {
             }
 
             let c1 = new C1({ id: 'i1'});
-            expect(c1.toString()).to.equal('<div id="i1"><div id="i2"></div></div>');
+            expect(c1.toString()).to.equal('<div id="C1i1"><div id="C2i2"></div></div>');
         });
 
         it('root element with multiple flat child custom element', () => {
@@ -182,7 +182,7 @@ describe('Render to string', () => {
             }
 
             let c1 = new C1({ id: 'i1'});
-            expect(c1.toString()).to.equal('<div id="i1"><div id="i2"></div><div id="i3"></div></div>');
+            expect(c1.toString()).to.equal('<div id="C1i1"><div id="C2i2"></div><div id="C3i3"></div></div>');
         });
 
         it('root element with multiple nested child custom element', () => {
@@ -203,7 +203,7 @@ describe('Render to string', () => {
             }
 
             let c1 = new C1({ id: 'i1'});
-            expect(c1.toString()).to.equal('<div id="i1"><div id="i2"><div id="i3"></div></div></div>');
+            expect(c1.toString()).to.equal('<div id="C1i1"><div id="C2i2"><div id="C3i3"></div></div></div>');
         });
     });
 });

@@ -82,7 +82,7 @@ export class ComposerDOMElement implements DOMElement {
     }
 
     public remove(): void {
-        this.nativeElement.parentElement.removeChild(this.nativeElement);
+        this.nativeElement.parentNode.removeChild(this.nativeElement);
     }
 
     public addClass(className: string): ComposerDOMElement {
