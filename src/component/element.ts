@@ -48,6 +48,11 @@ export function createElement(
 
         if (!renderId) {
             renderId = getRenderId();
+
+            // Remove this render on next tick.
+            setTimeout(() => {
+                delete instantiatedComponents[renderId];
+            }, 0);
         }
         if (!instantiatedComponents[renderId]) {
             instantiatedComponents[renderId] = {};
