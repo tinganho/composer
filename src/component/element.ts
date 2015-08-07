@@ -7,6 +7,23 @@ import * as u from './utils';
 
 let id = 0;
 let instantiatedComponents: { [renderId: string]: u.Map<Component<any, any, any>> } = {};
+let nodes: { [node: string]: DOMElement } = {};
+
+export function getNodeLink(id: string) {
+    if (id in nodes) return nodes[id];
+
+    let root = document.getElementById(id);
+    if (!root) {
+        Debug.error(`Could not bind root element '{0}'.`, id);
+    }
+
+    // Defer delete of node link
+    ((id: string) => {
+        setTimeout(() => { delete nodes[id]; }, 100);
+    })(id);
+
+    return nodes[id] = new ComposerDOMElement(root);
+}
 
 export function getRenderId(): number {
     return id++;
@@ -263,11 +280,7 @@ export function createElement(
      */
     function bindDOM(renderId?: number): number {
         renderId = handleDOMAction(renderId, (element, renderId) => {
-            let root = document.getElementById(component.id);
-            if (!root) {
-                Debug.error(`Could not bind root element '{0}'.`, component.id);
-            }
-            component.root = new ComposerDOMElement(root);
+            component.root = getNodeLink(component.id);
 
             for (let p in props) {
                 if (p === 'ref') {
