@@ -10,9 +10,6 @@
         "jsx": "react",
         "removeComments": true
     },
-    "files": [
-        "src/harness/runner.ts"
-    ],
     "exclude": [
         "node_modules"
     ]

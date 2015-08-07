@@ -73,7 +73,7 @@ declare abstract class Component<P extends Props, S, E> {
     public toString(renderId?: number): string;
     public getInstancesOf<R>(...components: string[]): Components;
     public recursivelyCallMethod(target: any, repetitiveAccessor: string, method: string): void;
-    // public renderAndSetComponent(): JSX.Element;
+    public renderAndSetComponent(): JSX.Element;
 }
 
 declare namespace JSX {

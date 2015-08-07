@@ -43,17 +43,17 @@ gulp.task('compile-typescript-files', ['clean'], function(next) {
 });
 
 gulp.task('copy-server-files', ['clean'], function() {
-    var runnerCopyStream = gulp.src('test/cases/unitTests/runner.html', { base: 'test/cases/unitTests' })
-        .pipe(gulp.dest('built/test/cases/unitTests'));
+    var runnerCopyStream = gulp.src('test/unitTests/runner.html', { base: 'test/unitTests' })
+        .pipe(gulp.dest('built/test/unitTests'));
 
     var vendorCopyStream = gulp.src('public/scripts/vendor/**/*', { base: 'public/scripts' })
-        .pipe(gulp.dest('built/test/cases/unitTests'));
+        .pipe(gulp.dest('built/test/unitTests'));
 
     var mochaCopyStream = gulp.src('node_modules/mocha/mocha.{css,js}', { base: 'node_modules/mocha' })
-        .pipe(gulp.dest('built/test/cases/unitTests/vendor'));
+        .pipe(gulp.dest('built/test/unitTests/vendor'));
 
     var chaiCopyStream = gulp.src('node_modules/chai/chai.js', { base: 'node_modules/chai' })
-        .pipe(gulp.dest('built/test/cases/unitTests/vendor'));
+        .pipe(gulp.dest('built/test/unitTests/vendor'));
 
     return es.concat(runnerCopyStream, vendorCopyStream, mochaCopyStream, chaiCopyStream);
 });
