@@ -139,11 +139,8 @@ export function createElement(
             }
             frag.appendChild(elementComponent.toDOM());
 
-            // We want to add a root custom element too. The children custom element
-            // is added above. We do a check of the component variable. There is no
-            // component for children custom elements, but there are one for the a
-            // root custom element, becase the component class calls `setComponent`
-            // and passes the component to this closure.
+            // Add root custom element. There is no component injected for non-root
+            // custom element.
             if (component) {
                 component.customElements[elementComponent.id] = elementComponent;
             }
@@ -308,7 +305,6 @@ export function createElement(
             let elementComponentId = props.id ? (element as any).name + props.id : (element as any).name;
             if (instantiatedComponents[renderId] &&
                 instantiatedComponents[renderId][elementComponentId]) {
-
                 elementComponent = instantiatedComponents[renderId][elementComponentId]
             }
             else {
@@ -317,11 +313,8 @@ export function createElement(
             }
             elementComponent.bindDOM(renderId);
 
-            // We want to add a root custom element too. The children custom element
-            // is added above. We do a check of the component variable. There is no
-            // component for children custom elements, but there are one for the a
-            // root custom element, because the component class calls `setComponent`
-            // and passes the component to this `createElement` closure.
+            // Add root custom element. There is no component injected for non-root
+            // custom element.
             if (component) {
                 component.customElements[elementComponent.id] = elementComponent;
             }
@@ -375,6 +368,10 @@ export function createElement(
         }
     }
 
+    function resetComponent() {
+        component = undefined;
+    }
+
     return {
         isIntrinsic: typeof element === 'string',
         isCustomElement: typeof element !== 'string',
@@ -382,6 +379,7 @@ export function createElement(
         markAsChildOfRootElement,
         instantiateComponents,
         setComponent,
+        resetComponent,
         toString,
         bindDOM,
         toDOM,

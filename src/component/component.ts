@@ -51,8 +51,6 @@ export abstract class Component<P extends Props, S, E extends Elements> {
 
     public lastRenderId: number;
 
-    public promises: any[];
-
     constructor(
         props?: P,
         children?: Child[]) {
@@ -116,17 +114,36 @@ export abstract class Component<P extends Props, S, E extends Elements> {
      * it is now suitable to show them with this function. Show is also called whenever
      * a page request failed to unhide components.
      */
-    public show(): Promise<any> {
-        this.promises = [];
-        this.recursivelyCallMethod(this, 'customElements', 'show');
-        return Promise.all(this.promises);
+    public show(): Promise<void> {
+        return Promise.resolve(undefined);
     }
 
-    public recursivelyCallMethod(target: any, repetitveAccessor: string, method: string): void {
-        for (let c in target[repetitveAccessor]) {
-            this.promises.push(target[repetitveAccessor][c][method]());
+    /**
+     * Call method recursively over all `customElements`. The method is called with no arguments.
+     */
+    public recursivelyCallMethod(method: string): Promise<void> {
+        return new Promise<void>((resolve) => {
+            let promises: Promise<void>[] = [];
+            if ((this as any)[method]) {
+                promises.push((this as any)[method]());
+            }
+            this.recurseMethodCalls(this, method, promises);
+            Promise.all(promises).then(() => {
+                resolve(undefined);
+            });
+        });
+    }
+
+    public recurseMethodCalls(target: any, method: string, promises: Promise<void>[]): void {
+        if (!target) {
+            return;
         }
-        this.recursivelyCallMethod(target[repetitveAccessor], repetitveAccessor, method);
+        for (let c in target['customElements']) {
+            if (target['customElements'][c][method]) {
+                promises.push(target['customElements'][c][method]());
+            }
+        }
+        this.recurseMethodCalls(target['customElements'], method, promises);
     }
 
     /**

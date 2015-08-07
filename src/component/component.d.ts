@@ -52,7 +52,6 @@ declare abstract class Component<P extends Props, S, E> {
     public customElements: Components;
     public instantiatedComponents: Components;
     public lastRenderId: number;
-    public promises: any[];
 
     constructor(props?: P, children?: Child[]);
 
@@ -62,7 +61,8 @@ declare abstract class Component<P extends Props, S, E> {
     public abstract render(): JSX.Element;
     public remove(): Promise<void>;
     public hide(): Promise<void>;
-    public show(): Promise<any>;
+    public show(): Promise<void>;
+    public recursivelyCallMethod(method: string): Promise<void>;
     public fetch<TRequest, TResult>(req: TRequest): Promise<TResult>;
     public bindDOM(renderId?: number): void;
     public bindInteractions(): void;
@@ -72,7 +72,6 @@ declare abstract class Component<P extends Props, S, E> {
     public toDOM(renderId?: number): DocumentFragment;
     public toString(renderId?: number): string;
     public getInstancesOf<R>(...components: string[]): Components;
-    public recursivelyCallMethod(target: any, repetitiveAccessor: string, method: string): void;
     public renderAndSetComponent(): JSX.Element;
 }
 
@@ -85,6 +84,7 @@ declare namespace JSX {
         setComponent(component: Component<any, any, any>): void;
         bindDOM(renderId?: number): number;
         getComponent(): Component<any, any, any>;
+        resetComponent(): void;
         instantiateComponents(renderId?: number): number;
         markAsChildOfRootElement(): void;
     }

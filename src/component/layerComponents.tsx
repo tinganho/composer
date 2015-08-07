@@ -38,22 +38,12 @@ export abstract class ComposerComponent<P extends Props, S, E extends Elements> 
      * constructor's name.
      */
     public static name: string;
-    public remove(): Promise<void> { return }
-    public hide(): Promise<void> { return }
 }
 
 export abstract class ComposerDocument<P extends DocumentProps, S, E extends Elements> extends ComposerComponent<P, S, E> {}
 export abstract class ComposerLayout<P extends Props, S, E extends Elements> extends ComposerComponent<P, S, E> {}
 export abstract class ComposerContent<P extends Props, S, E extends Elements> extends ComposerComponent<P, S, E> {
     public static fetch<TRequest, TResult>(request: TRequest): Promise<TResult> { return }
-
-    public hide(): Promise<void> {
-        return Promise.resolve(undefined);
-    }
-    public remove(): Promise<void> {
-        this.root.remove();
-        return Promise.resolve(undefined);
-    }
 }
 
 interface LinkProps extends Props {

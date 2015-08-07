@@ -4,6 +4,7 @@
 /// <reference path='../component/layerComponents.d.ts'/>
 /// <reference path='../../typings/es6-promise/es6-promise.d.ts'/>
 
+declare function require(path: string): any;
 import ReactMod = require('../component/element');
 let React: typeof ReactMod = require('/src/component/element.js');
 
@@ -81,7 +82,7 @@ export class Router {
         for (let content of page.contents) {
             let jsonElement = document.getElementById(`composer-content-json-${content.className.toLowerCase()}`);
             if (!jsonElement) {
-                console.error(
+                throw new Error(
 `Could not find JSON file ${content.className}. Are you sure
 this component is properly named?`);
             }
@@ -90,7 +91,7 @@ this component is properly named?`);
                 placeholderContents[content.region] = React.createElement((window as any)[this.appName].Component.Content[content.className], jsonElement.innerText !== '' ? JSON.parse(jsonElement.innerText).data : {}, null);
             }
             catch(err) {
-                console.error(`Could not parse JSON for ${content.className}.`)
+                throw new Error(`Could not parse JSON for ${content.className}.`)
             }
             if (jsonElement.remove) {
                 jsonElement.remove();
@@ -141,7 +142,7 @@ this component is properly named?`);
                 ((currentContent: string) => {
                     if (removeCurrentContent) {
                         expectedNumberOfRemoves++;
-                        (this as any).currentContents[currentContent][method]()
+                        this.currentContents[currentContent].recursivelyCallMethod(method)
                             .then(() => {
                                 currentNumberOfRemoves++;
                                 if (method === 'remove') {
@@ -155,12 +156,11 @@ this component is properly named?`);
                                     }
                                 }
                                 if (currentNumberOfRemoves === expectedNumberOfRemoves) {
-                                    resolve();
+                                    resolve(undefined);
                                 }
                             });
                     }
-                })(currentContent)
-
+                })(currentContent);
             }
         });
     }
@@ -225,26 +225,29 @@ this component is properly named?`);
                                         this.currentLayoutComponent = layoutComponent;
                                     }
                                     else {
-                                        this.loopThroughIrrelevantCurrentContentsAndExec(page, 'remove').then(() => {
+                                        this.removeIrrelevantCurrentContents(page).then(() => {
                                             for (let c in contents) {
                                                 let content = (contents as any)[c];
                                                 let region = document.getElementById(c);
                                                 if (!region) {
-                                                    throw new Error('Region \'' + c + '\' is missing');
+                                                    throw new Error('Region \'' + c + '\' is missing.');
                                                 }
                                                 this.currentLayoutComponent.setProp(c, content);
                                                 region.appendChild(content.toDOM().frag);
+
+                                                // We must reset the component created by the `toDOM()` method above.
+                                                // Because children custom element should not have component reference
+                                                // in their create element closure. If we don't reset the component
+                                                // reference there will be a custom element property referencing itself.
+                                                content.resetComponent();
                                             }
 
                                             this.currentLayoutComponent.hasBoundDOM = false;
                                             this.currentLayoutComponent.bindDOM();
                                             this.currentContents = this.currentLayoutComponent.customElements as CurrentContents;
 
-                                            console.log(this.currentContents)
                                             for (let c in this.currentContents) {
-                                                if (this.currentContents[c].show) {
-                                                    this.currentContents[c].show();
-                                                }
+                                                this.currentContents[c].recursivelyCallMethod('show');
                                             }
                                         });
                                     }

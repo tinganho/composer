@@ -2,6 +2,16 @@
 import * as React from '../../../src/component/element';
 import { ComposerContent, ComposerComponent, Link } from '../../../src/component/layerComponents';
 
+interface DialogProps {
+    title: string;
+}
+
+export class Dialog extends ComposerComponent<any, any, any> {
+    public render() {
+        return (<div><h1 class='DialogTitle'>{this.props.title}</h1></div>);
+    }
+}
+
 interface NavigationBarProps extends Props {
     a: string;
     b: string;
@@ -72,13 +82,12 @@ export class TodoList extends ComposerContent<TodoListProps, {}, TodoListElement
         return promise;
     }
 
+    public hide(): Promise<void> {
+        return super.hide();
+    }
+
     public show(): Promise<void> {
-        return new Promise<void>((resolve) => {
-            super.show().then(() => {
-
-            });
-        });
-
+        return super.show();
     }
 
     public render() {
@@ -140,7 +149,7 @@ export class Todo extends ComposerContent<TodoItemProps, {}, TodoItemElements> {
 
     public render() {
         return (
-            <div class='todo' id={`todo-${this.props.id}`}></div>
+            <div></div>
         );
     }
 }
