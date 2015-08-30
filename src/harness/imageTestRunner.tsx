@@ -111,9 +111,13 @@ export default class ImageTestRunner {
         else {
             pattern = 'test/imageTests/cases/projects/*/test.js';
         }
-        removeFolderOrFile(path.join(this.root, 'test/baselines/local'));
-        removeFolderOrFile(path.join(this.root, 'test/baselines/diff'));
+        removeFolderOrFile(path.join(this.root, 'test/imageTests/baselines/local'));
+        removeFolderOrFile(path.join(this.root, 'test/imageTests/baselines/diff'));
         let filePaths = glob(pattern, { cwd: this.builtFolder });
+
+        if (filePaths.length === 0) {
+            Debug.prompt(`No file paths found for pattern '${pattern}'. Did you compiled your project correctly?`);
+        }
 
         describe('Image diffs |', () => {
             for (var filePath of filePaths) {

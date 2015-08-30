@@ -19,7 +19,7 @@ export function test(d: BrowserDirectives): BrowserDirectives {
     }
 
     d.useBrowserActions = webdriver => {
-        webdriver.click('TodoListItem1').wait('Hiding');
+        webdriver.click('TodoListItem1').wait('DialogHide');
         return webdriver;
     }
 

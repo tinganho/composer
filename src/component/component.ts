@@ -4,6 +4,7 @@
 /// <reference path='./component.d.ts' />
 
 import { Platform, getPlatform } from './platform';
+import { ComposerDOMElement } from './DOMElement';
 import { unsetInstantiatedComponents, getInstantiatedComponents } from './element';
 import * as u from './utils';
 
@@ -160,6 +161,21 @@ export abstract class Component<P extends Props, S, E extends Elements> {
             this.lastRenderId = this.renderAndSetComponent().bindDOM(renderId);
             this.hasBoundDOM = true;
         }
+    }
+
+    /**
+     * Find specific node using id.
+     */
+    public findNode(id: string): DOMElement {
+        return new ComposerDOMElement(document.getElementById(id));
+    }
+
+    /**
+     * Append to
+     */
+    public appendTo(id: string): Component<P, S, E> {
+        document.getElementById(id).appendChild(this.toDOM());
+        return this;
     }
 
     /**

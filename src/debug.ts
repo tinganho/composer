@@ -101,7 +101,9 @@ export namespace Logger {
         message = interpolateMessage(message, arg0, arg1, arg2);
 
         let category = (levelToCategoryString as any)[level];
-        console.log(`[ ${category} ] - ${message}`);
+        let preText = `[ ${category} ] - `;
+        process.stdout.columns
+
     }
 
     export function error(message: string, arg0?: string | Error, arg1?: string, arg2?: string) {
